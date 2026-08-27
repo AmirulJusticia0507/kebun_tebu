@@ -268,7 +268,7 @@ watch(() => props.blocks, () => {
     <AppLayout :title="__('Peta Monitoring')" :user="user">
         <div class="h-[calc(100vh-4rem)] relative">
             <!-- Filter Sidebar -->
-            <aside class="fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 -translate-x-full lg:static lg:relative" :class="{ 'translate-x-0': sidebarOpen }">
+            <aside class="fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 -translate-x-full lg:static" :class="{ 'translate-x-0': sidebarOpen }">
                 <div class="flex flex-col h-full">
                     <div class="p-4 border-b border-gray-200 flex items-center justify-between">
                         <h2 class="text-lg font-semibold text-gray-900">Filter</h2>
@@ -319,6 +319,17 @@ watch(() => props.blocks, () => {
                         <div class="flex gap-2 pt-4">
                             <button @click="applyFilters" class="btn-primary flex-1">Terapkan</button>
                             <button @click="clearFilters" class="btn-outline flex-1">Reset</button>
+                        </div>
+
+                        <!-- Export Options -->
+                        <div class="pt-4 border-t border-gray-200 space-y-2">
+                            <h3 class="text-sm font-medium text-gray-900 mb-2">Export Data</h3>
+                            <a :href="route('reports.export.csv')" target="_blank" class="btn bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 w-full text-xs py-2 flex items-center justify-center gap-2">
+                                📥 Download CSV
+                            </a>
+                            <a :href="route('reports.export.geojson')" target="_blank" class="btn bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 w-full text-xs py-2 flex items-center justify-center gap-2">
+                                🗺️ Download GeoJSON
+                            </a>
                         </div>
 
                         <div class="pt-4 border-t border-gray-200">

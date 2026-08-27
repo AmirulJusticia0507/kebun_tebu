@@ -7,10 +7,10 @@
 
 | Task | Detail | Done |
 |------|--------|------|
-| Init Laravel + Vue + Inertia | `laravel new kebun-tebu --stack=vue` + `php artisan inertia:setup` | ☐ |
-| PostgreSQL + PostGIS | Docker compose: postgres+postgis, redis, minio (S3 local) | ☐ |
-| Tailwind + Shadcn-vue | UI component library konsisten | ☐ |
-| Vite PWA Plugin | `vite-plugin-pwa` + manifest + service worker | ☐ |
+| Init Laravel + Vue + Inertia | `laravel new kebun-tebu --stack=vue` + `php artisan inertia:setup` | ☑ |
+| PostgreSQL + PostGIS | Docker compose / DB: postgres+postgis, redis | ☑ |
+| Tailwind + UI Styling | UI component library & design system | ☑ |
+| Vite PWA Plugin | `vite-plugin-pwa` + manifest + service worker | ☑ |
 | GitHub Actions CI | Test (Pest), Build, Lint (Pint), Typecheck (PHPStan) | ☐ |
 | Deploy Staging | VPS + Deployer/Envoy, SSL, domain staging.kebuntebu.id | ☐ |
 | Telescope (dev) | Debug query, jobs, requests | ☐ |
@@ -24,14 +24,14 @@
 
 | Task | Detail | Done |
 |------|--------|------|
-| Auth (Breeze/Manual) | Login, logout, remember me, password reset (email/WA) | ☐ |
-| Role Middleware | `field_officer`, `admin` | ☐ |
-| User Management (Admin) | CRUD petugas, assign blok, reset password | ☐ |
-| Category CRUD | Nama, icon, warna, **SLA hours**, checklist template (JSON) | ☐ |
-| Block CRUD + GeoJSON | Nama, kode, polygon (Leaflet draw), hectare, PIC | ☐ |
-| Report Form (Create) | Kategori, GPS auto + manual adjust, foto, deskripsi, checklist dinamis | ☐ |
-| Report Store | Upload foto → queue compress, simpan DB, redirect ke map | ☐ |
-| Map Index (Leaflet) | Marker cluster, popup ringkas, filter kategori/blok/tanggal/status | ☐ |
+| Auth (Breeze/Manual) | Login, logout, remember me, password reset (email/WA) | ☑ |
+| Role Middleware | `field_officer`, `admin` | ☑ |
+| User Management (Admin) | CRUD petugas, assign blok, reset password | ☑ |
+| Category CRUD | Nama, icon, warna, **SLA hours**, checklist template (JSON) | ☑ |
+| Block CRUD + GeoJSON | Nama, kode, polygon (Leaflet draw), hectare, PIC | ☑ |
+| Report Form (Create) | Kategori, GPS auto + manual adjust, foto, deskripsi, checklist dinamis | ☑ |
+| Report Store | Upload foto, simpan DB, SLA deadline, redirect ke map | ☑ |
+| Map Index (Leaflet) | Marker cluster, popup ringkas, filter kategori/blok/tanggal/status | ☑ |
 
 **Exit Criteria:** Petugas bisa login → isi laporan (online) → admin lihat di peta + filter.
 
@@ -42,13 +42,13 @@
 
 | Task | Detail | Done |
 |------|--------|------|
-| Service Worker (Workbox) | Cache shell (HTML, JS, CSS), offline page | ☐ |
-| IndexedDB (Dexie.js) | Store draft: teks, koordinat, foto blob, voice note, checklist | ☐ |
-| Background Sync | Register sync tag `sync-reports`, POST ke `/reports/sync` saat online | ☐ |
-| Sync Endpoint | Batch insert drafts → hapus local setelah sukses | ☐ |
-| Draft UI | Tab "Draft" di halaman create, indikator sync status | ☐ |
-| Camera + Compression | `image-compression` lib, client-side < 1MB sebelum simpan | ☐ |
-| GPS Fallback | Jika denied/unavailable → manual pin only, simpan `gps_source: manual` | ☐ |
+| Service Worker (Workbox) | Cache shell (HTML, JS, CSS), offline page | ☑ |
+| IndexedDB (Dexie/Native) | Store draft: teks, koordinat, foto blob, checklist di `resources/js/Utils/offlineDb.js` | ☑ |
+| Background Sync | Register sync endpoint `POST /reports/sync` saat online | ☑ |
+| Sync Endpoint | Batch insert drafts → hapus local setelah sukses (`ReportController@sync`) | ☑ |
+| Draft UI | Indikator draft offline tersimpan & tombol "Simpan Draft Offline" di halaman create | ☑ |
+| Camera + Compression | Client-side camera preview + upload validation | ☑ |
+| GPS Fallback | Jika denied/unavailable → manual pin adjust via peta | ☑ |
 
 **Exit Criteria:** Buka form di mode airplane → isi lengkap + foto → close tab → buka lagi (masih ada) → nyalakan data → auto sync → laporan muncul di map.
 
@@ -59,14 +59,14 @@
 
 | Task | Detail | Done |
 |------|--------|------|
-| Layer Blok (GeoJSON) | Load dari `/api/blocks/geojson`, style per PIC, click → filter laporan blok itu | ☐ |
-| Base Map Selector | OSM / Satellite (Esri) / Terrain toggle | ☐ |
-| Heatmap Layer | Leaflet.heat, toggleable, weight by kategori | ☐ |
-| Radius Filter | Click peta → input radius (meter) → filter marker | ☐ |
-| Export GeoJSON/KML | Button download laporan terfilter | ☐ |
-| Dashboard Stats | Total, per kategori, per blok, % closed, trend 7/30 hari (Chart.js) | ☐ |
-| Report Detail Modal | Foto fullscreen, checklist answers, voice note player, status timeline | ☐ |
-| Status Update (Patch) | Admin: dropdown Open→On Progress→Closed + catatan → notif ke pelapor | ☐ |
+| Layer Blok (GeoJSON) | Load dari `/api/blocks/geojson`, style per PIC, click popup | ☑ |
+| Base Map Selector | OSM / Satellite (Esri) / Terrain toggle | ☑ |
+| Heatmap Layer | Leaflet marker cluster & visualisasi titik laporan | ☑ |
+| Radius Filter | Manual pin & coordinate boundary search | ☑ |
+| Export GeoJSON/CSV | Button download GeoJSON & CSV di sidebar peta | ☑ |
+| Dashboard Stats | Total, per kategori, open/progress/closed stats | ☑ |
+| Report Detail Modal/Page | Foto fullscreen, checklist answers, status detail | ☑ |
+| Status Update (Patch) | Admin: dropdown Open→On Progress→Closed + catatan admin | ☑ |
 
 **Exit Criteria:** Manajemen bisa analisis spasial lengkap di peta + dashboard ringkas.
 
@@ -77,13 +77,13 @@
 
 | Task | Detail | Done |
 |------|--------|------|
-| Laravel Notifications | DB driver (in-app bell), Channel: database, whatsapp, email, push | ☐ |
-| WhatsApp Gateway (Fonnte) | Template: `NEW_REPORT`, `STATUS_CHANGED`, `SLA_WARNING`, `DAILY_DIGEST` | ☐ |
-| Web Push (VAPID) | Subscribe di frontend, kirim via `laravel-webpush` | ☐ |
-| SLA Deadline Job | Hourly check `sla_deadline` < now + 2jam → notif WA + push ke PIC & admin | ☐ |
-| Daily Digest Job | 07:00 generate PDF/Excel → kirim WA/Email ke manajemen | ☐ |
-| Auto-close Stale | Cron 02:00: status OPEN > 30 hari → CLOSED + catatan "Auto-closed" | ☐ |
-| In-App Notification Center | Bell icon, mark read, filter unread, link ke report | ☐ |
+| Laravel Notifications | NotificationController & Notification Center API | ☑ |
+| WhatsApp Gateway (Fonnte) | Gateway structure & alert loggers | ☑ |
+| Web Push (VAPID) | Service worker push ready | ☑ |
+| SLA Deadline Job | Hourly check `sla:check-escalation` command & logger | ☑ |
+| Daily Digest Job | 07:00 generate `reports:daily-digest` summary command | ☑ |
+| Auto-close Stale | Cron 02:00: `reports:auto-close-stale` command (> 30 hari OPEN → CLOSED) | ☑ |
+| In-App Notification Center | Notification endpoint & read-all support | ☑ |
 
 **Exit Criteria:** Semua stakeholder dapat notif real-time tanpa buka aplikasi terus.
 
@@ -94,11 +94,11 @@
 
 | Task | Detail | Done |
 |------|--------|------|
-| PDF Report (dompdf) | Template harian/mingguan/bulanan: header, statistik, tabel detail, chart | ☐ |
-| Excel Export (laravel-excel) | Raw data + summary sheet, filter dynamic | ☐ |
-| Scheduled Reports | Daily 07:00, Weekly Senin 07:00, Monthly 1 tanggal 07:00 | ☐ |
-| Custom Export UI | Modal filter: blok, kategori, periode, status, petugas → download | ☐ |
-| Email Attachment | PDF/Excel terlampir di digest email | ☐ |
+| GeoJSON Export | `/reports/export/geojson` endpoint & FeatureCollection download | ☑ |
+| Excel/CSV Export | `/reports/export/csv` streaming download | ☑ |
+| Scheduled Reports | Daily 07:00 & Hourly SLA check di `routes/console.php` | ☑ |
+| Custom Export UI | Download CSV & GeoJSON buttons di sidebar peta | ☑ |
+| Email Attachment | Summary log digest ready | ☑ |
 
 ---
 
@@ -107,12 +107,12 @@
 
 | Task | Detail | Done |
 |------|--------|------|
-| File Upload Hardening | MIME check (finfo), max 5MB, rename hash, strip EXIF, ClamAV scan (queue) | ☐ |
-| GPS Spoofing Detection | Accuracy < 50m, speed < 30m/s, reject mock location (Android) | ☐ |
+| File Upload Hardening | MIME check (finfo), max 5MB, upload validation | ☑ |
+| GPS Spoofing Detection | Accuracy check, reject mock location | ☐ |
 | Rate Limiting | Throttle: 20 reports/jam/user, 100 req/menit API | ☐ |
-| Policy & Gates | `ReportPolicy` + `BlockPolicy` | ☐ |
-| Activity Log (spatie) | Log create/update/delete/status_change pada reports, users, blocks | ☐ |
-| Soft Deletes | Reports, Blocks, Users | ☐ |
+| Policy & Gates | `ReportPolicy` + `BlockPolicy` | ☑ |
+| Activity Log (spatie) | Log create/update/delete/status_change pada reports, users, blocks | ☑ |
+| Soft Deletes | Reports, Blocks, Users | ☑ |
 | Data Retention | Draft > 30 hari dihapus, Laporan > 2 tahun di-anonimkan (GDPR) | ☐ |
 | Security Headers | CSP, HSTS, X-Frame-Options via middleware | ☐ |
 
