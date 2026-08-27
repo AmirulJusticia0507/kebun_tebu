@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import Swal from 'sweetalert2';
+import CookieConsent from '@/Components/CookieConsent.vue';
 
 const props = defineProps({
     title: String,
@@ -106,6 +107,9 @@ const confirmLogout = () => {
         <Head>
             <title>{{ title ? title + ' - Kebun Tebu MVP' : 'Kebun Tebu MVP' }}</title>
         </Head>
+
+        <!-- Cookie Consent Banner -->
+        <CookieConsent />
 
         <!-- Offline Banner -->
         <div v-if="isOffline" class="offline-indicator" role="alert">

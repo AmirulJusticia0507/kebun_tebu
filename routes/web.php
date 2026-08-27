@@ -21,6 +21,13 @@ Route::get('/', function () {
         ]);
 });
 
+// Kebijakan Privasi & Cookie
+Route::get('/privacy-policy', function () {
+    return Inertia::render('PrivacyPolicy', [
+        'user' => Auth::user(),
+    ]);
+})->name('privacy.policy');
+
 // ─── Authenticated routes ─────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
 
