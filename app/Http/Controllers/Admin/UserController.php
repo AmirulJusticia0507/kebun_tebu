@@ -19,7 +19,7 @@ class UserController extends Controller
 
         return Inertia::render('Dashboard/Users/Index', [
             'user'  => $currentUser,
-            'users' => User::with('assignedBlocks')->orderBy('name')->get(),
+            'users' => User::with('assignedBlocks', 'roles')->orderBy('name')->get(),
         ]);
     }
 
@@ -44,13 +44,15 @@ class UserController extends Controller
             'phone_number' => 'nullable|string|max:20',
         ]);
 
-        User::create([
+        $newUser = User::create([
             'name'         => $validated['name'],
             'email'        => $validated['email'],
             'password'     => Hash::make($validated['password']),
             'role'         => $validated['role'],
             'phone_number' => $validated['phone_number'] ?? null,
         ]);
+
+        $newUser->assignRole($validated['role']);
 
         return redirect()->route('admin.users.index')->with('success', 'Petugas berhasil ditambahkan.');
     }
@@ -62,7 +64,7 @@ class UserController extends Controller
 
         return Inertia::render('Dashboard/Users/Edit', [
             'user'       => $currentUser,
-            'editedUser' => $user,
+            'editedUser' => $user->load('roles'),
             'blocks'     => Block::where('is_active', true)->get(),
         ]);
     }
@@ -77,6 +79,7 @@ class UserController extends Controller
         ]);
 
         $user->update($validated);
+        $user->syncRoles([$validated['role']]);
 
         return redirect()->route('admin.users.index')->with('success', 'Data petugas berhasil diperbarui.');
     }

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import Swal from 'sweetalert2';
 
 const props = defineProps({
     title: String,
@@ -8,7 +9,6 @@ const props = defineProps({
 });
 
 const unreadCount = ref(0);
-const isUserMenuOpen = ref(false);
 const isOffline = ref(typeof window !== 'undefined' ? !navigator.onLine : false);
 const isDark = ref(true);
 
@@ -73,9 +73,30 @@ onUnmounted(() => {
     }
 });
 
-const logout = () => {
-    axios.post('/logout').then(() => {
-        window.location.href = '/';
+const confirmLogout = () => {
+    Swal.fire({
+        title: 'Konfirmasi Keluar',
+        text: 'Apakah Anda yakin ingin keluar dari sistem Kebun Tebu MVP?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Keluar',
+        cancelButtonText: 'Batal',
+        background: '#0f172a',
+        color: '#f8fafc',
+        customClass: {
+            popup: 'border border-slate-800 rounded-2xl shadow-2xl backdrop-blur-xl bg-slate-900/95',
+            title: 'text-slate-100 font-bold',
+            confirmButton: 'px-4 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-emerald-950/50',
+            cancelButton: 'px-4 py-2 rounded-xl text-sm font-semibold',
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            axios.post('/logout').then(() => {
+                window.location.href = '/';
+            });
+        }
     });
 };
 </script>
@@ -121,8 +142,11 @@ const logout = () => {
                             <Link href="/reports/create" class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200" :class="$page.url.startsWith('/reports/create') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'">
                                 ➕ Buat Laporan
                             </Link>
-                            <Link v-if="user.role === 'admin'" href="/dashboard" class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200" :class="$page.url.startsWith('/dashboard') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'">
+                            <Link v-if="user.role === 'admin'" href="/dashboard" class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200" :class="$page.url.startsWith('/dashboard') && !$page.url.startsWith('/dashboard/users') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'">
                                 📊 Dashboard
+                            </Link>
+                            <Link v-if="user.role === 'admin'" href="/dashboard/users" class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200" :class="$page.url.startsWith('/dashboard/users') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'">
+                                👥 Kelola Pengguna
                             </Link>
                         </nav>
                     </div>
@@ -153,7 +177,7 @@ const logout = () => {
                             </button>
                         </div>
 
-                        <!-- User Profile Dropdown -->
+                        <!-- User Profile Dropdown & SweetAlert Logout -->
                         <div class="relative flex items-center gap-3">
                             <div class="hidden sm:flex flex-col items-end">
                                 <span class="text-sm font-bold text-slate-200">{{ user.name }}</span>
@@ -162,7 +186,7 @@ const logout = () => {
                                 </span>
                             </div>
 
-                            <button @click="logout" class="btn btn-secondary text-xs py-2 px-3 hover:border-rose-500/50 hover:text-rose-400">
+                            <button @click="confirmLogout" class="btn btn-secondary text-xs py-2 px-3 hover:border-rose-500/50 hover:text-rose-400">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                 </svg>
@@ -189,11 +213,17 @@ const logout = () => {
                     </svg>
                     <span class="text-[10px]">Lapor</span>
                 </Link>
-                <Link v-if="user.role === 'admin'" href="/dashboard" class="flex flex-col items-center gap-1 p-2 rounded-xl transition-colors" :class="$page.url.startsWith('/dashboard') ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200'">
+                <Link v-if="user.role === 'admin'" href="/dashboard" class="flex flex-col items-center gap-1 p-2 rounded-xl transition-colors" :class="$page.url.startsWith('/dashboard') && !$page.url.startsWith('/dashboard/users') ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200'">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
                     <span class="text-[10px]">Dashboard</span>
+                </Link>
+                <Link v-if="user.role === 'admin'" href="/dashboard/users" class="flex flex-col items-center gap-1 p-2 rounded-xl transition-colors" :class="$page.url.startsWith('/dashboard/users') ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200'">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span class="text-[10px]">Users</span>
                 </Link>
             </div>
         </div>
