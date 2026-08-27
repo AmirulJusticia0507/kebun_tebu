@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -9,6 +9,11 @@ const props = defineProps({
 
 const unreadCount = ref(0);
 const isUserMenuOpen = ref(false);
+const isOffline = ref(typeof window !== 'undefined' ? !navigator.onLine : false);
+
+const updateOnlineStatus = () => {
+    isOffline.value = typeof window !== 'undefined' ? !navigator.onLine : false;
+};
 
 const fetchUnreadCount = async () => {
     if (props.user) {
@@ -23,6 +28,17 @@ const fetchUnreadCount = async () => {
 
 onMounted(() => {
     fetchUnreadCount();
+    if (typeof window !== 'undefined') {
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+    }
+});
+
+onUnmounted(() => {
+    if (typeof window !== 'undefined') {
+        window.removeEventListener('online', updateOnlineStatus);
+        window.removeEventListener('offline', updateOnlineStatus);
+    }
 });
 
 const logout = () => {
@@ -39,7 +55,7 @@ const logout = () => {
         </Head>
 
         <!-- Offline Banner -->
-        <div v-if="!navigator.onLine" class="offline-indicator" role="alert">
+        <div v-if="isOffline" class="offline-indicator" role="alert">
             <svg class="w-6 h-6 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
