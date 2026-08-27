@@ -12,6 +12,43 @@ use Inertia\Inertia;
 
 class ReportController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+
+        $query = Report::with(['category', 'block', 'user'])
+            ->orderByDesc('reported_at');
+
+        // Field officers only see their own reports
+        if ($user->role === 'field_officer') {
+            $query->where('user_id', $user->id);
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by category
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // Search by title
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        $reports = $query->paginate(15)->withQueryString();
+
+        return Inertia::render('Reports/Index', [
+            'user'       => $user,
+            'reports'    => $reports,
+            'categories' => Category::select('id', 'name', 'color_code')->get(),
+            'filters'    => $request->only(['status', 'category_id', 'search']),
+        ]);
+    }
+
     public function create()
     {
         return Inertia::render('Reports/Create', [

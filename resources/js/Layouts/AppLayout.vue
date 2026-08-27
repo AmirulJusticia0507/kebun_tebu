@@ -144,6 +144,9 @@ const confirmLogout = () => {
                             <Link href="/reports/create" class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200" :class="$page.url.startsWith('/reports/create') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'">
                                 ➕ Buat Laporan
                             </Link>
+                            <Link href="/reports" class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200" :class="$page.url === '/reports' || ($page.url.startsWith('/reports/') && !$page.url.startsWith('/reports/create')) ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'">
+                                📋 Riwayat Laporan
+                            </Link>
                             <Link v-if="user.role === 'admin'" href="/dashboard" class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200" :class="$page.url.startsWith('/dashboard') && !$page.url.startsWith('/dashboard/users') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'">
                                 📊 Dashboard
                             </Link>

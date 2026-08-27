@@ -30,11 +30,12 @@ class RegisteredUserController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-            'phone_number' => $request->phone_number,
+            'name'              => $request->name,
+            'email'             => $request->email,
+            'password'          => Hash::make($request->password),
+            'role'              => $request->role,
+            'phone_number'      => $request->phone_number,
+            'email_verified_at' => now(), // Auto-verify: no email verification flow needed
         ]);
 
         $user->assignRole($request->role);

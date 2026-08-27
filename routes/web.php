@@ -29,7 +29,7 @@ Route::get('/privacy-policy', function () {
 })->name('privacy.policy');
 
 // ─── Authenticated routes ─────────────────────────────────────────────────────
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     // Peta monitoring (semua user)
     Route::get('/map', [MapController::class, 'index'])->name('map');
@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->middleware('role:admin')->name('admin.dashboard');
 
     // Form laporan & offline sync (field_officer & admin)
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
     Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
     Route::post('/reports/sync', [ReportController::class, 'sync'])->name('reports.sync');
