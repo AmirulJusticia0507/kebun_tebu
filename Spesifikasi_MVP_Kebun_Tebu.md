@@ -1,4 +1,3 @@
-
 # 🌾 Dokumen Spesifikasi Lengkap MVP: Web-Based Monitoring Map (Perkebunan Tebu)
 
 ---
@@ -100,6 +99,67 @@ Bagi yang berminat, silakan kirimkan Direct Message (DM) / kontak saya dengan me
 Detail Requirement dan alur kerja yang lebih spesifik akan didiskusikan lebih lanjut setelah penyaringan awal. Terima kasih!
 ```
 
+---
 
+## 3. Estimasi Biaya Infrastruktur (Low Cost MVP)
 
-3. Estimasi Biaya Infrastruktur (Low Cost MVP)KomponenLayanan DirekomendasikanEstimasi Biaya (Tahap MVP)Hosting & ServerVPS Murah (BiznetGio / Niagahoster / IdCloudHost) atau Railway / RenderRp 50.000 - Rp 100.000 / bulanDatabaseManaged PostgreSQL (Supabase Free Tier) atau Local DB ServerRp 0 / bulanDomain Custom (.id / .com)Registrar Lokal~Rp 150.000 / tahunMap APIOpenStreetMap + Leaflet.jsRp 0 (Free Open Source)TOTAL ESTIMASI INFRASTRUKTUR± Rp 150.000 / tahun + Biaya Hosting4. Skema Tabel Database (ERD)4.1 Tabel usersMenyimpan data otentikasi dan identitas pelapor maupun admin.Nama KolomTipe DataKeterangan / ConstraintsidBIGINTPrimary Key, Auto IncrementnameVARCHAR(100)Nama lengkap penggunaemailVARCHAR(100)Unique, untuk loginpasswordVARCHAR(255)Hash passwordroleENUM'field_officer', 'admin'phone_numberVARCHAR(20)Nomor HP / WhatsAppcreated_atTIMESTAMPWaktu akun dibuat4.2 Tabel categoriesMenyimpan daftar kategori kejadian.Nama KolomTipe DataKeterangan / ConstraintsidINTPrimary Key, Auto IncrementnameVARCHAR(50)Nama kejadian (e.g. Kebakaran, Hama)icon_markerVARCHAR(100)File icon penanda peta (e.g. fire.png)color_codeVARCHAR(10)Kode warna hex (e.g. #FF0000)4.3 Tabel reportsMenyimpan detail laporan kejadian dari lapangan.Nama KolomTipe DataKeterangan / ConstraintsidBIGINTPrimary Key, Auto Incrementuser_idBIGINTForeign Key ➔ users.idcategory_idINTForeign Key ➔ categories.idtitleVARCHAR(150)Judul singkat kejadiandescriptionTEXTKeterangan/kronologi kejadianlatitudeDECIMAL(10, 8)Koordinat Lintang (misal: -7.79560000)longitudeDECIMAL(11, 8)Koordinat Bujur (misal: 110.36950000)block_codeVARCHAR(50)Kode Blok/Wilayah Kebun (e.g. BLOK-A12)photo_urlVARCHAR(255)Path/URL file foto buktistatusENUM'OPEN', 'ON_PROGRESS', 'CLOSED'admin_noteTEXTCatatan tindak lanjut adminhandled_byBIGINTForeign Key ➔ users.id (Admin penanggung jawab)reported_atTIMESTAMPWaktu kejadian dilaporkanupdated_atTIMESTAMPWaktu update terakhir5. Struktur Routing & Controller (Laravel + Inertia)Karena menggunakan Inertia.js, Routing ditangani oleh Laravel dan merender komponen Vue.js:HTTP MethodRoute URLController & MethodRender Vue Page / ActionGET/loginAuthenticatedSessionController@createPages/Auth/Login.vuePOST/loginAuthenticatedSessionController@storeAuthenticate UserGET/reports/createReportController@createPages/Reports/Create.vue (Form Input & GPS)POST/reportsReportController@storeHandle File Upload & Save DB ➔ RedirectGET/mapMapController@indexPages/Map/Index.vue (Leaflet Interactive Map)GET/reports/{id}ReportController@showPages/Reports/Show.vue (Detail Laporan)PATCH/reports/{id}/statusReportStatusController@updateUpdate Status ➔ Refresh PageGET/dashboardDashboardController@indexPages/Dashboard.vue (Ringkasan Statistik)6. QA Test Plan (Pengujian Lapangan)6.1 Matriks Pengujian GPS / Location TaggingID TestSkenario PengujianHasil yang DiharapkanGPS-01Location PermissionBrowser menampilkan pop-up izin lokasi saat form dibuka pertama kali.GPS-02Auto-detect GPSKoordinat Latitude & Longitude terisi otomatis dengan akurasi < 15 meter.GPS-03Penyesuaian Manual (Pin Adjust)Menggeser pin di peta kecil pada form otomatis memperbarui koordinat teks.GPS-04GPS HP Non-AktifTampil peringatan: "GPS Anda belum aktif. Aktifkan GPS atau pilih titik di peta."GPS-05Akses Ditolak (Denied)Tampil opsi input lokasi cadangan (pilih manual via peta).6.2 Matriks Pengujian Upload Foto LapanganID TestSkenario PengujianHasil yang DiharapkanCAM-01Tangkap Foto via Kamera HPKlik tombol kamera membuka kamera bawaan HP, foto tampil di preview.CAM-02Kompresi OtomatisFoto resolusi tinggi (8-15 MB) otomatis dikompres client-side menjadi < 1 MB sebelum diunggah.CAM-03Validasi FormatFile non-gambar (PDF/DOCX) ditolak dengan pesan error validasi.CAM-04Penanganan Sinyal LemahSaat internet lambat/putus, data teks & koordinat yang diisi tidak terhapus (retain form data).
+| Komponen | Layanan Direkomendasikan | Estimasi Biaya (Tahap MVP) |
+|----------|---------------------------|----------------------------|
+| Hosting & Server | VPS Murah (BiznetGio / Niagahoster / IdCloudHost) atau Railway / Render | Rp 50.000 - Rp 100.000 / bulan |
+| Database | Managed PostgreSQL (Supabase Free Tier) atau Local DB Server | Rp 0 / bulan |
+| Domain Custom (.id / .com) | Registrar Lokal | ~Rp 150.000 / tahun |
+| Map API | OpenStreetMap + Leaflet.js | Rp 0 (Free Open Source) |
+| **TOTAL ESTIMASI INFRASTRUKTUR** | | **± Rp 150.000 / tahun + Biaya Hosting** |
+
+---
+
+## 4. Skema Tabel Database (ERD)
+
+### 4.1 Tabel `users`
+Menyimpan data otentikasi dan identitas pelapor maupun admin.
+
+| Nama Kolom | Tipe Data | Keterangan / Constraints |
+|------------|-----------|--------------------------|
+| id | BIGINT | Primary Key, Auto Increment |
+| name | VARCHAR(100) | Nama lengkap pengguna |
+| email | VARCHAR(100) | Unique, untuk login |
+| password | VARCHAR(255) | Hash password |
+| role | ENUM | 'field_officer', 'admin' |
+| phone_number | VARCHAR(20) | Nomor HP / WhatsApp |
+| created_at | TIMESTAMP | Waktu akun dibuat |
+
+### 4.2 Tabel `categories`
+Menyimpan daftar kategori kejadian.
+
+| Nama Kolom | Tipe Data | Keterangan / Constraints |
+|------------|-----------|--------------------------|
+| id | INT | Primary Key, Auto Increment |
+| name | VARCHAR(50) | Nama kejadian (e.g. Kebakaran, Hama) |
+| icon_marker | VARCHAR(100) | File icon penanda peta (e.g. fire.png) |
+| color_code | VARCHAR(10) | Kode warna hex (e.g. #FF0000) |
+
+### 4.3 Tabel `reports`
+Menyimpan detail laporan kejadian dari lapangan.
+
+| Nama Kolom | Tipe Data | Keterangan / Constraints |
+|------------|-----------|--------------------------|
+| id | BIGINT | Primary Key, Auto Increment |
+| user_id | BIGINT | Foreign Key → users.id |
+| category_id | INT | Foreign Key → categories.id |
+| title | VARCHAR(150) | Judul singkat kejadian |
+| description | TEXT | Keterangan/kronologi kejadian |
+| latitude | DECIMAL(10, 8) | Koordinat Lintang (misal: -7.79560000) |
+| longitude | DECIMAL(11, 8) | Koordinat Bujur (misal: 110.36950000) |
+| block_code | VARCHAR(50) | Kode Blok/Wilayah Kebun (e.g. BLOK-A12) |
+| photo_url | VARCHAR(255) | Path/URL file foto bukti |
+| status | ENUM | 'OPEN', 'ON_PROGRESS', 'CLOSED' |
+| admin_note | TEXT | Catatan tindak lanjut admin |
+| handled_by | BIGINT | Foreign Key → users.id (Admin penanggung jawab) |
+| reported_at | TIMESTAMP | Waktu kejadian dilaporkan |
+| updated_at | TIMESTAMP | Waktu update terakhir |
+
+---
+
+## 5. Struktur Routing & Controller (Laravel + Inertia)
+
+Karena menggunakan ...
