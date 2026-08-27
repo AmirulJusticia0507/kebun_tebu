@@ -127,10 +127,8 @@ const confirmLogout = () => {
                     <div class="flex items-center gap-8">
                         <Link href="/map" class="flex items-center gap-3 group">
                             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-lg shadow-emerald-950/40 group-hover:scale-105 transition-transform duration-200">
-                                <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h1.5a2.5 2.5 0 002.5-2.5V7.435M12 21a9 9 0 100-18 9 9 0 000 18z" />
-                                    </svg>
+                                <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center overflow-hidden">
+                                    <img src="/logo-kebun-tebu.png" alt="Kebun Tebu Logo" class="w-8 h-8 object-contain" />
                                 </div>
                             </div>
                             <div class="flex flex-col">

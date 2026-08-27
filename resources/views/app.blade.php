@@ -3,6 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <link rel="icon" type="image/png" href="/logo-kebun-tebu.png">
+        <link rel="apple-touch-icon" href="/logo-kebun-tebu.png">
         <link rel="manifest" href="/build/manifest.webmanifest">
         <meta name="theme-color" content="#059669">
 
