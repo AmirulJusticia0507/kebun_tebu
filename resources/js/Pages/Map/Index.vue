@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import L from 'leaflet';
 import 'leaflet.markercluster';
@@ -17,7 +17,8 @@ const mapContainer = ref(null);
 const map = ref(null);
 const markers = ref(null);
 const selectedReport = ref(null);
-const sidebarOpen = ref(false);
+const isFilterSidebarOpen = ref(true);
+const isDetailSidebarOpen = ref(false);
 
 const filterForm = useForm({
     category_id: props.filters.category_id || '',
@@ -67,6 +68,15 @@ const defaultIcon = L.icon({
 const getCategoryColor = (categoryId) => {
     const cat = props.categories.find(c => c.id === categoryId);
     return cat?.color_code || '#16a34a';
+};
+
+const toggleFilterSidebar = () => {
+    isFilterSidebarOpen.value = !isFilterSidebarOpen.value;
+    nextTick(() => {
+        if (map.value) {
+            setTimeout(() => map.value.invalidateSize(), 300);
+        }
+    });
 };
 
 const initMap = () => {
@@ -122,24 +132,23 @@ const loadMarkers = () => {
         const statusColor = report.status === 'OPEN' ? '#ef4444' : report.status === 'ON_PROGRESS' ? '#f59e0b' : '#22c55e';
 
         const popupContent = `
-            <div class="p-2 min-w-[250px]">
+            <div class="p-3 min-w-[240px]">
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="w-3 h-3 rounded-full" style="background-color: ${getCategoryColor(report.category_id)}"></span>
-                    <strong>${report.title}</strong>
+                    <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${getCategoryColor(report.category_id)}"></span>
+                    <strong class="text-sm text-slate-100">${report.title}</strong>
                 </div>
-                <p class="text-sm text-gray-600 mb-2">${report.description || 'Tidak ada deskripsi'}</p>
-                <div class="text-xs text-gray-500 space-y-1">
-                    <div>Kategori: ${report.category?.name || '-'}</div>
-                    <div>Blok: ${report.block_code || report.block?.code || '-'}</div>
-                    <div>Pelapor: ${report.user?.name || '-'}</div>
-                    <div>Waktu: ${new Date(report.reported_at).toLocaleString('id-ID')}</div>
-                    <div><span class="px-2 py-0.5 rounded text-xs" style="background-color: ${statusColor}20; color: ${statusColor};">${statusLabel}</span></div>
+                <p class="text-xs text-slate-300 mb-2 line-clamp-2">${report.description || 'Tidak ada deskripsi'}</p>
+                <div class="text-[11px] text-slate-400 space-y-1 mb-3">
+                    <div>Kategori: <span class="text-slate-200">${report.category?.name || '-'}</span></div>
+                    <div>Blok: <span class="text-slate-200">${report.block_code || report.block?.code || '-'}</span></div>
+                    <div>Pelapor: <span class="text-slate-200">${report.user?.name || '-'}</span></div>
+                    <div>Status: <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" style="background-color: ${statusColor}25; color: ${statusColor}; border: 1px solid ${statusColor}50;">${statusLabel}</span></div>
                 </div>
                 <button 
                     onclick="window.dispatchEvent(new CustomEvent('map-report-click', { detail: ${report.id} }))"
-                    class="mt-2 w-full btn-primary text-xs py-1"
+                    class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow-md transition-all"
                 >
-                    Lihat Detail
+                    Lihat Detail Laporan
                 </button>
             </div>
         `;
@@ -180,19 +189,19 @@ const loadBlockLayers = () => {
 
     const blockLayer = L.geoJSON(geojson, {
         style: (feature) => ({
-            color: '#16a34a',
+            color: '#10b981',
             weight: 2,
             opacity: 0.8,
-            fillColor: '#16a34a',
-            fillOpacity: 0.1,
+            fillColor: '#10b981',
+            fillOpacity: 0.15,
         }),
         onEachFeature: (feature, layer) => {
             layer.bindPopup(`
                 <div class="p-2">
-                    <strong>Blok ${feature.properties.code}</strong><br>
-                    ${feature.properties.name}<br>
-                    Luas: ${feature.properties.hectare} Ha<br>
-                    PIC: ${feature.properties.pic || '-'}
+                    <strong class="text-emerald-400">Blok ${feature.properties.code}</strong><br>
+                    <span class="text-sm">${feature.properties.name}</span><br>
+                    <span class="text-xs text-slate-300">Luas: ${feature.properties.hectare} Ha</span><br>
+                    <span class="text-xs text-slate-400">PIC: ${feature.properties.pic || '-'}</span>
                 </div>
             `);
         },
@@ -220,15 +229,15 @@ const clearFilters = () => {
 
 const selectReport = (report) => {
     selectedReport.value = report;
-    sidebarOpen.value = true;
+    isDetailSidebarOpen.value = true;
     
     if (map.value && report.latitude && report.longitude) {
         map.value.setView([report.latitude, report.longitude], 16);
     }
 };
 
-const closeSidebar = () => {
-    sidebarOpen.value = false;
+const closeDetailSidebar = () => {
+    isDetailSidebarOpen.value = false;
     selectedReport.value = null;
 };
 
@@ -238,6 +247,29 @@ const handleReportClick = (event) => {
     if (report) {
         selectReport(report);
     }
+};
+
+const statusUpdateForm = useForm({
+    status: '',
+    admin_note: '',
+});
+
+watch(selectedReport, (newReport) => {
+    if (newReport) {
+        statusUpdateForm.status = newReport.status;
+        statusUpdateForm.admin_note = newReport.admin_note || '';
+    }
+});
+
+const saveStatus = () => {
+    if (!selectedReport.value) return;
+    statusUpdateForm.patch(route('reports.status', selectedReport.value.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            selectedReport.value.status = statusUpdateForm.status;
+            selectedReport.value.admin_note = statusUpdateForm.admin_note;
+        },
+    });
 };
 
 onMounted(() => {
@@ -266,20 +298,41 @@ watch(() => props.blocks, () => {
 
 <template>
     <AppLayout title="Peta Monitoring Spasial" :user="user">
-        <div class="h-[calc(100vh-4rem)] relative">
-            <!-- Filter Sidebar -->
-            <aside class="fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 -translate-x-full lg:static" :class="{ 'translate-x-0': sidebarOpen }">
-                <div class="flex flex-col h-full">
-                    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900">Filter</h2>
-                        <button @click="sidebarOpen = false" class="lg:hidden text-gray-500 hover:text-gray-700">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+        <div class="flex h-[calc(100vh-4.1rem)] w-full overflow-hidden relative">
+            
+            <!-- Left Filter & Search Sidebar Panel -->
+            <aside 
+                :class="[
+                    'z-30 w-80 max-w-[85vw] flex-shrink-0 glass-panel border-r border-slate-800 flex flex-col transition-all duration-300 ease-in-out absolute lg:relative inset-y-0 left-0',
+                    isFilterSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-80'
+                ]"
+            >
+                <!-- Sidebar Header -->
+                <div class="p-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/60">
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">🎛️</span>
+                        <h2 class="text-base font-bold text-slate-100">Filter & Control</h2>
                     </div>
+                    <button @click="toggleFilterSidebar" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
-                    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Sidebar Body Scrollable Form -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    
+                    <!-- Quick Create Report Button -->
+                    <Link href="/reports/create" class="btn-primary w-full py-3 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Buat Laporan Lapangan</span>
+                    </Link>
+
+                    <!-- Filter Form Fields -->
+                    <div class="space-y-3 pt-2">
                         <div>
                             <label class="label">Kategori Kejadian</label>
                             <select v-model="filterForm.category_id" class="input">
@@ -289,173 +342,190 @@ watch(() => props.blocks, () => {
                         </div>
 
                         <div>
-                            <label class="label">Wilayah / Blok</label>
+                            <label class="label">Wilayah / Blok Kebun</label>
                             <select v-model="filterForm.block_id" class="input">
                                 <option value="">Semua Blok</option>
                                 <option v-for="block in blocks" :key="block.id" :value="block.id">{{ block.code }} - {{ block.name }}</option>
                             </select>
                         </div>
 
-                        <div>
-                            <label class="label">Dari Tanggal</label>
-                            <input type="date" v-model="filterForm.date_from" class="input" />
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="label">Dari Tanggal</label>
+                                <input type="date" v-model="filterForm.date_from" class="input text-xs" />
+                            </div>
+                            <div>
+                                <label class="label">Sampai Tanggal</label>
+                                <input type="date" v-model="filterForm.date_to" class="input text-xs" />
+                            </div>
                         </div>
 
                         <div>
-                            <label class="label">Sampai Tanggal</label>
-                            <input type="date" v-model="filterForm.date_to" class="input" />
-                        </div>
-
-                        <div>
-                            <label class="label">Status</label>
+                            <label class="label">Status Laporan</label>
                             <select v-model="filterForm.status" class="input">
                                 <option value="">Semua Status</option>
-                                <option value="OPEN">Open</option>
-                                <option value="ON_PROGRESS">On Progress</option>
-                                <option value="CLOSED">Closed</option>
+                                <option value="OPEN">Open (Baru)</option>
+                                <option value="ON_PROGRESS">On Progress (Penanganan)</option>
+                                <option value="CLOSED">Closed (Selesai)</option>
                             </select>
                         </div>
 
-                        <div class="flex gap-2 pt-4">
-                            <button @click="applyFilters" class="btn-primary flex-1">Terapkan</button>
-                            <button @click="clearFilters" class="btn-outline flex-1">Reset</button>
+                        <div class="flex gap-2 pt-2">
+                            <button @click="applyFilters" class="btn-primary flex-1 text-xs py-2">
+                                Terapkan
+                            </button>
+                            <button @click="clearFilters" class="btn-secondary flex-1 text-xs py-2">
+                                Reset
+                            </button>
                         </div>
+                    </div>
 
-                        <!-- Export Options -->
-                        <div class="pt-4 border-t border-gray-200 space-y-2">
-                            <h3 class="text-sm font-medium text-gray-900 mb-2">Export Data</h3>
-                            <a :href="route('reports.export.csv')" target="_blank" class="btn bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 w-full text-xs py-2 flex items-center justify-center gap-2">
-                                📥 Download CSV
+                    <!-- Export Section -->
+                    <div class="pt-4 border-t border-slate-800 space-y-2">
+                        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Export Data Spatial</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <a :href="route('reports.export.csv')" target="_blank" class="btn btn-secondary text-xs py-2 flex items-center justify-center gap-1.5">
+                                📥 CSV
                             </a>
-                            <a :href="route('reports.export.geojson')" target="_blank" class="btn bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 w-full text-xs py-2 flex items-center justify-center gap-2">
-                                🗺️ Download GeoJSON
+                            <a :href="route('reports.export.geojson')" target="_blank" class="btn btn-secondary text-xs py-2 flex items-center justify-center gap-1.5">
+                                🗺️ GeoJSON
                             </a>
                         </div>
+                    </div>
 
-                        <div class="pt-4 border-t border-gray-200">
-                            <h3 class="text-sm font-medium text-gray-900 mb-2">Legenda</h3>
-                            <div class="space-y-2">
-                                <div v-for="cat in categories" :key="cat.id" class="flex items-center gap-2 text-sm">
-                                    <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: cat.color_code }"></span>
-                                    <span>{{ cat.name }}</span>
+                    <!-- Legend Section -->
+                    <div class="pt-4 border-t border-slate-800">
+                        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Legenda Kategori</h3>
+                        <div class="space-y-2">
+                            <div v-for="cat in categories" :key="cat.id" class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800/80">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-3.5 h-3.5 rounded-full shadow-sm" :style="{ backgroundColor: cat.color_code }"></span>
+                                    <span class="text-xs font-semibold text-slate-200">{{ cat.name }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Mobile overlay -->
-                <div v-if="sidebarOpen" class="fixed inset-0 bg-black/50 z-40 lg:hidden" @click="sidebarOpen = false"></div>
             </aside>
 
-            <!-- Map Container -->
-            <div ref="mapContainer" class="map-container lg:ml-0" id="map"></div>
+            <!-- Floating Toggle Button (Top-Left of Map) -->
+            <button 
+                @click="toggleFilterSidebar" 
+                class="absolute top-4 left-4 z-20 glass-panel px-3.5 py-2.5 rounded-xl border border-slate-700/80 text-xs font-bold text-slate-100 shadow-xl hover:border-emerald-500/50 hover:bg-slate-800/90 transition-all flex items-center gap-2"
+                :title="isFilterSidebarOpen ? 'Sembunyikan Panel Filter' : 'Tampilkan Panel Filter'"
+            >
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <span>{{ isFilterSidebarOpen ? 'Sembunyikan Filter' : 'Filter & Legenda' }}</span>
+            </button>
 
-            <!-- Report Detail Sidebar -->
-            <aside v-if="selectedReport" class="fixed inset-y-0 right-0 z-50 w-96 bg-white border-l border-gray-200 transform transition-transform duration-300 translate-x-full lg:translate-x-0" :class="{ 'translate-x-0': sidebarOpen }">
-                <div class="flex flex-col h-full">
-                    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900">Detail Laporan</h2>
-                        <button @click="closeSidebar" class="text-gray-500 hover:text-gray-700">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
+            <!-- Floating Create Report Button (Top-Right of Map) -->
+            <Link 
+                href="/reports/create"
+                class="absolute top-4 right-16 z-20 btn-primary py-2 px-3.5 text-xs shadow-xl flex items-center gap-2"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span class="hidden sm:inline">Buat Laporan</span>
+            </Link>
 
-                    <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">{{ selectedReport.title }}</h3>
+            <!-- Main Map Canvas -->
+            <div ref="mapContainer" class="flex-1 h-full w-full z-10" id="map"></div>
+
+            <!-- Right Detail Sidebar Drawer -->
+            <aside 
+                v-if="selectedReport"
+                :class="[
+                    'z-40 w-96 max-w-[90vw] glass-panel border-l border-slate-800 flex flex-col transition-all duration-300 absolute inset-y-0 right-0 shadow-2xl',
+                    isDetailSidebarOpen ? 'translate-x-0' : 'translate-x-full'
+                ]"
+            >
+                <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+                    <h2 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                        <span>📌 Detail Laporan</span>
+                    </h2>
+                    <button @click="closeDetailSidebar" class="p-1 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-100">{{ selectedReport.title }}</h3>
+                        <div class="mt-2">
                             <span :class="[
-                                'badge',
                                 selectedReport.status === 'OPEN' ? 'badge-open' :
                                 selectedReport.status === 'ON_PROGRESS' ? 'badge-progress' :
                                 'badge-closed'
-                            ]" class="ml-2">
-                                {{ selectedReport.status === 'OPEN' ? 'Open' : selectedReport.status === 'ON_PROGRESS' ? 'On Progress' : 'Closed' }}
+                            ]">
+                                {{ selectedReport.status === 'OPEN' ? 'Open (Baru)' : selectedReport.status === 'ON_PROGRESS' ? 'On Progress' : 'Closed (Selesai)' }}
                             </span>
                         </div>
+                    </div>
 
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Kategori</span>
-                                <span class="font-medium flex items-center gap-2">
-                                    <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: getCategoryColor(selectedReport.category_id) }"></span>
-                                    {{ selectedReport.category?.name }}
-                                </span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Blok</span>
-                                <span class="font-medium">{{ selectedReport.block_code || selectedReport.block?.code || '-' }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Koordinat</span>
-                                <span class="font-medium font-mono">{{ selectedReport.latitude }}, {{ selectedReport.longitude }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Pelapor</span>
-                                <span class="font-medium">{{ selectedReport.user?.name }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Waktu</span>
-                                <span class="font-medium">{{ new Date(selectedReport.reported_at).toLocaleString('id-ID') }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Status</span>
-                                <span :class="[
-                                    'badge',
-                                    selectedReport.status === 'OPEN' ? 'badge-open' :
-                                    selectedReport.status === 'ON_PROGRESS' ? 'badge-progress' :
-                                    'badge-closed'
-                                ]">
-                                    {{ selectedReport.status === 'OPEN' ? 'Open' : selectedReport.status === 'ON_PROGRESS' ? 'On Progress' : 'Closed' }}
-                                </span>
-                            </div>
+                    <div class="space-y-2.5 text-xs glass-card p-3 border border-slate-800/80">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Kategori:</span>
+                            <span class="font-bold text-slate-200 flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: getCategoryColor(selectedReport.category_id) }"></span>
+                                {{ selectedReport.category?.name || '-' }}
+                            </span>
                         </div>
-
-                        <div v-if="selectedReport.description" class="pt-4 border-t border-gray-100">
-                            <h4 class="text-sm font-medium text-gray-900 mb-2">Deskripsi</h4>
-                            <p class="text-sm text-gray-600 whitespace-pre-wrap">{{ selectedReport.description }}</p>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Blok Kebun:</span>
+                            <span class="font-bold text-slate-200">{{ selectedReport.block_code || selectedReport.block?.code || '-' }}</span>
                         </div>
-
-                        <div v-if="selectedReport.photo_url" class="pt-4 border-t border-gray-100">
-                            <h4 class="text-sm font-medium text-gray-900 mb-2">Foto Bukti</h4>
-                            <img :src="selectedReport.photo_url" alt="Foto bukti" class="w-full rounded-lg max-h-64 object-cover" />
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Koordinat:</span>
+                            <span class="font-mono text-slate-300">{{ selectedReport.latitude }}, {{ selectedReport.longitude }}</span>
                         </div>
-
-                        <div v-if="selectedReport.checklist_answers && Object.keys(selectedReport.checklist_answers).length > 0" class="pt-4 border-t border-gray-100">
-                            <h4 class="text-sm font-medium text-gray-900 mb-2">Checklist</h4>
-                            <div class="space-y-1">
-                                <div v-for="(value, key) in selectedReport.checklist_answers" :key="key" class="text-sm">
-                                    <span class="text-gray-600">{{ key }}:</span>
-                                    <span class="font-medium ml-2">{{ value }}</span>
-                                </div>
-                            </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Pelapor:</span>
+                            <span class="font-semibold text-slate-200">{{ selectedReport.user?.name || '-' }}</span>
                         </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Waktu:</span>
+                            <span class="text-slate-300">{{ new Date(selectedReport.reported_at).toLocaleString('id-ID') }}</span>
+                        </div>
+                    </div>
 
-                        <div v-if="user.is_admin" class="pt-4 border-t border-gray-100 space-y-3">
-                            <h4 class="text-sm font-medium text-gray-900">Ubah Status</h4>
-                            <select v-model="selectedReport.status" class="input" @change="updateStatus">
-                                <option value="OPEN">Open</option>
-                                <option value="ON_PROGRESS">On Progress</option>
-                                <option value="CLOSED">Closed</option>
+                    <div v-if="selectedReport.description" class="pt-2">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Deskripsi Kejadian</h4>
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
+                            {{ selectedReport.description }}
+                        </div>
+                    </div>
+
+                    <div v-if="selectedReport.photo_url" class="pt-2">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Foto Bukti Lapangan</h4>
+                        <img :src="selectedReport.photo_url" alt="Foto bukti" class="w-full rounded-xl max-h-56 object-cover border border-slate-800 shadow-md" />
+                    </div>
+
+                    <!-- Admin status management -->
+                    <div v-if="user && user.role === 'admin'" class="pt-4 border-t border-slate-800 space-y-3">
+                        <h4 class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Ubah Status Laporan (Admin)</h4>
+                        <div>
+                            <label class="label">Status Baru</label>
+                            <select v-model="statusUpdateForm.status" class="input">
+                                <option value="OPEN">Open (Baru)</option>
+                                <option value="ON_PROGRESS">On Progress (Dalam Penanganan)</option>
+                                <option value="CLOSED">Closed (Selesai)</option>
                             </select>
-                            <textarea v-model="selectedReport.admin_note" placeholder="Catatan admin (opsional)" class="input h-20" rows="3"></textarea>
-                            <button @click="saveStatus" class="btn-primary w-full">Simpan Perubahan</button>
                         </div>
+                        <div>
+                            <label class="label">Catatan Admin</label>
+                            <textarea v-model="statusUpdateForm.admin_note" placeholder="Tuliskan catatan tindak lanjut..." class="input h-20" rows="3"></textarea>
+                        </div>
+                        <button @click="saveStatus" :disabled="statusUpdateForm.processing" class="btn-primary w-full py-2.5">
+                            {{ statusUpdateForm.processing ? 'Menyimpan...' : 'Simpan Perubahan Status' }}
+                        </button>
                     </div>
                 </div>
             </aside>
-
-            <!-- Mobile map controls -->
-            <div class="fixed bottom-24 left-4 right-4 lg:hidden z-30 flex justify-center gap-2">
-                <button @click="sidebarOpen = !sidebarOpen" class="btn-primary shadow-lg">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    Filter
-                </button>
-            </div>
         </div>
     </AppLayout>
 </template>

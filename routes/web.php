@@ -27,6 +27,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Peta monitoring (semua user)
     Route::get('/map', [MapController::class, 'index'])->name('map');
 
+    // Dashboard statistik (admin-only & fallback name)
+    Route::get('/dashboard', function () {
+        if (Auth::user()?->role === 'admin') {
+            return app(DashboardController::class)->index();
+        }
+        return redirect()->route('map');
+    })->name('dashboard');
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->middleware('role:admin')->name('admin.dashboard');
+
     // Form laporan & offline sync (field_officer & admin)
     Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
     Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
@@ -43,11 +52,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Update status laporan (admin)
     Route::patch('/reports/{report}/status', [ReportStatusController::class, 'update'])->name('reports.status');
 
-    // ─── Admin-only routes ────────────────────────────────────────────────────
+    // ─── Admin-only management routes ──────────────────────────────────────────
     Route::middleware('role:admin')->prefix('dashboard')->name('admin.')->group(function () {
-
-        // Dashboard statistik
-        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
         // Manajemen Pengguna / Petugas
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
