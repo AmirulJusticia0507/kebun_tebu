@@ -14,10 +14,19 @@ createInertiaApp({
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
         const pinia = createPinia();
-        createApp({ render: () => h(App, props) })
+        const vueApp = createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(pinia)
-            .use(ZiggyVue, Ziggy)
+            .use(pinia);
+
+        if (typeof Ziggy !== 'undefined') {
+            vueApp.use(ZiggyVue, Ziggy);
+        } else {
+            vueApp.use(ZiggyVue);
+        }
+
+        vueApp.config.globalProperties.__ = (key) => key;
+
+        vueApp
             .component('Link', Link)
             .component('Head', Head)
             .mount(el);

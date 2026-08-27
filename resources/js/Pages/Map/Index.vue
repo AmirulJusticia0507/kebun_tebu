@@ -265,7 +265,7 @@ watch(() => props.blocks, () => {
 </script>
 
 <template>
-    <AppLayout :title="__('Peta Monitoring')" :user="user">
+    <AppLayout title="Peta Monitoring Spasial" :user="user">
         <div class="h-[calc(100vh-4rem)] relative">
             <!-- Filter Sidebar -->
             <aside class="fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 -translate-x-full lg:static" :class="{ 'translate-x-0': sidebarOpen }">

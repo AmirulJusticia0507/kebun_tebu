@@ -20,7 +20,7 @@ const submit = () => {
 </script>
 
 <template>
-    <AppLayout :title="__('Login')" :user="null">
+    <AppLayout title="Masuk ke Akun" :user="null">
         <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
             <div class="w-full max-w-md">
                 <div class="card p-8">
