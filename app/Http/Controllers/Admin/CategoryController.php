@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
@@ -12,7 +13,7 @@ class CategoryController extends Controller
     public function index()
     {
         return Inertia::render('Dashboard/Categories/Index', [
-            'user'       => auth()->user(),
+            'user'       => Auth::user(),
             'categories' => Category::withCount('reports')->get(),
         ]);
     }

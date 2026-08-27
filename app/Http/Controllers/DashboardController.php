@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Report;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -28,7 +29,7 @@ class DashboardController extends Controller
             ->get();
 
         return Inertia::render('Dashboard', [
-            'user'          => auth()->user(),
+            'user'          => Auth::user(),
             'stats'         => [
                 'total_reports'    => $totalReports,
                 'open_reports'     => $openReports,

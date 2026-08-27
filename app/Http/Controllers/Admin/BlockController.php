@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Block;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class BlockController extends Controller
@@ -13,7 +14,7 @@ class BlockController extends Controller
     public function index()
     {
         return Inertia::render('Dashboard/Blocks/Index', [
-            'user'   => auth()->user(),
+            'user'   => Auth::user(),
             'blocks' => Block::with('pic')->withCount('reports')->get(),
         ]);
     }

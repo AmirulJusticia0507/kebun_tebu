@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Block;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -14,7 +15,7 @@ class UserController extends Controller
     public function index()
     {
         return Inertia::render('Dashboard/Users/Index', [
-            'user'  => auth()->user(),
+            'user'  => Auth::user(),
             'users' => User::with('assignedBlocks')->orderBy('name')->get(),
         ]);
     }
@@ -22,7 +23,7 @@ class UserController extends Controller
     public function create()
     {
         return Inertia::render('Dashboard/Users/Create', [
-            'user'   => auth()->user(),
+            'user'   => Auth::user(),
             'blocks' => Block::where('is_active', true)->get(),
         ]);
     }
@@ -51,7 +52,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         return Inertia::render('Dashboard/Users/Edit', [
-            'user'       => auth()->user(),
+            'user'       => Auth::user(),
             'editedUser' => $user,
             'blocks'     => Block::where('is_active', true)->get(),
         ]);
@@ -84,7 +85,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if ($user->id === auth()->id()) {
+        if ($user->id === Auth::id()) {
             return back()->with('error', 'Tidak dapat menghapus akun sendiri.');
         }
 

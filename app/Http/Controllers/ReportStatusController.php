@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Report;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReportStatusController extends Controller
 {
@@ -19,7 +20,7 @@ class ReportStatusController extends Controller
         $data = [
             'status'     => $validated['status'],
             'admin_note' => $validated['admin_note'] ?? $report->admin_note,
-            'handled_by' => auth()->id(),
+            'handled_by' => Auth::id(),
         ];
 
         if ($validated['status'] === 'CLOSED' && !$report->isClosed()) {
