@@ -9,63 +9,86 @@ const props = defineProps({
 </script>
 
 <template>
-    <AppLayout :title="__('Welcome')" :user="null">
-        <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
-            <div class="max-w-4xl w-full">
-                <div class="text-center mb-12">
-                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary-100 mb-6">
-                        <svg class="w-12 h-12 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
+    <AppLayout title="Selamat Datang" :user="null">
+        <div class="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16 overflow-hidden">
+            <!-- Background Radial Glows -->
+            <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[140px] pointer-events-none"></div>
+            <div class="absolute bottom-10 right-10 w-[400px] h-[400px] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+            <div class="relative max-w-5xl w-full mx-auto">
+                <!-- Hero Badge -->
+                <div class="text-center mb-10">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-widest shadow-glow-emerald mb-6">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>Sistem Monitoring Spasial Lapangan MVP</span>
                     </div>
-                    <h1 class="text-4xl font-bold text-gray-900 mb-4">Kebun Tebu</h1>
-                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Peta Monitoring Kejadian Lapangan untuk Perkebunan Tebu.
-                        Laporkan kebakaran, hama, penyakit, banjir, dan kendala lainnya secara real-time.
+
+                    <!-- Title & Subtitle -->
+                    <h1 class="font-display text-4xl sm:text-6xl font-extrabold text-white tracking-tight mb-6 leading-tight">
+                        Monitoring Perkebunan Tebu <br class="hidden sm:inline" />
+                        <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                            Interaktif & Offline-First
+                        </span>
+                    </h1>
+
+                    <p class="text-lg sm:text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                        Platform GIS modern untuk mengelola laporan kejadian kebakaran, hama, banjir, dan kendala blok kebun tebu secara real-time maupun offline di area minim jaringan.
                     </p>
                 </div>
 
+                <!-- Feature Grid -->
                 <div class="grid md:grid-cols-3 gap-6 mb-12">
-                    <div class="card p-6 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="glass-card-hover p-8 group">
+                        <div class="w-14 h-14 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/30 group-hover:scale-110 transition-transform">
+                            <svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Peta Interaktif</h3>
-                        <p class="text-gray-600">Visualisasi kejadian dengan clustering, heatmap, dan filter spasial</p>
+                        <h3 class="font-display text-xl font-bold text-white mb-2">Peta Spasial GIS</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Visualisasi layer polygon blok kebun, heatmap kejadian, cluster titik laporan, serta batas wilayah interaktif.
+                        </p>
                     </div>
 
-                    <div class="card p-6 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    <div class="glass-card-hover p-8 group">
+                        <div class="w-14 h-14 bg-gradient-to-br from-teal-500/20 to-cyan-500/10 rounded-2xl flex items-center justify-center mb-6 border border-teal-500/30 group-hover:scale-110 transition-transform">
+                            <svg class="w-7 h-7 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Laporan Mudah</h3>
-                        <p class="text-gray-600">Form mobile-friendly dengan GPS otomatis, foto, dan checklist dinamis</p>
+                        <h3 class="font-display text-xl font-bold text-white mb-2">PWA Offline-First</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Form laporan tetap berjalan tanpa jaringan internet. Simpan draft di IndexedDB dan sinkronkan otomatis saat online.
+                        </p>
                     </div>
 
-                    <div class="card p-6 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <div class="glass-card-hover p-8 group">
+                        <div class="w-14 h-14 bg-gradient-to-br from-amber-500/20 to-orange-500/10 rounded-2xl flex items-center justify-center mb-6 border border-amber-500/30 group-hover:scale-110 transition-transform">
+                            <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Offline-First</h3>
-                        <p class="text-gray-600">PWA dengan IndexedDB & Background Sync untuk area tanpa sinyal</p>
+                        <h3 class="font-display text-xl font-bold text-white mb-2">Otomasi & SLA</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Pengawasan estimasi tenggat SLA jam penanganan, notifikasi real-time, dan ekspor data CSV & GeoJSON cepat.
+                        </p>
                     </div>
                 </div>
 
-                <div class="card p-8">
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link v-if="props.canLogin" href="/login" class="btn-primary px-8 py-3 text-lg">
-                            Masuk
-                        </Link>
-                        <Link v-if="props.canRegister" href="/register" class="btn-secondary px-8 py-3 text-lg">
-                            Daftar
-                        </Link>
+                <!-- Action Card -->
+                <div class="glass-card p-10 text-center border-slate-800/80 shadow-2xl relative overflow-hidden">
+                    <div class="relative z-10 max-w-xl mx-auto">
+                        <h2 class="font-display text-2xl font-bold text-white mb-3">Mulai Gunakan Kebun Tebu MVP</h2>
+                        <p class="text-slate-400 text-sm mb-8">Masuk menggunakan akun petugas atau admin untuk mengakses peta dan form laporan.</p>
+
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link href="/login" class="btn-primary text-base px-8 py-3 shadow-glow-emerald">
+                                🔑 Masuk ke Aplikasi
+                            </Link>
+                            <Link v-if="props.canRegister" href="/register" class="btn-secondary text-base px-8 py-3">
+                                📝 Registrasi Akun Baru
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

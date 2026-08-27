@@ -4,128 +4,163 @@
 
 @layer base {
     * {
-        @apply border-gray-200;
+        @apply border-slate-800/60;
     }
     
     body {
-        @apply bg-gray-50 text-gray-900 antialiased;
-        font-feature-settings: "rlig" 1, "calt" 1;
+        @apply bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500 selection:text-white;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.6);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(51, 65, 85, 0.8);
+        border-radius: 9999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(16, 185, 129, 0.8);
     }
 }
 
 @layer components {
+    /* Glassmorphism Cards & Panels */
+    .glass-card {
+        @apply bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-2xl shadow-xl transition-all duration-300;
+    }
+
+    .glass-card-hover {
+        @apply glass-card hover:border-emerald-500/40 hover:shadow-glow-emerald hover:-translate-y-0.5;
+    }
+
+    .glass-nav {
+        @apply bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 sticky top-0 z-40;
+    }
+
+    .glass-panel {
+        @apply bg-slate-900/90 backdrop-blur-2xl border border-slate-800 shadow-2xl;
+    }
+
+    /* Buttons */
     .btn {
-        @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+        @apply inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-sm;
     }
     
     .btn-primary {
-        @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+        @apply btn bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 focus:ring-emerald-500 border border-emerald-400/30;
     }
     
     .btn-secondary {
-        @apply btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-primary-500;
+        @apply btn bg-slate-800/90 hover:bg-slate-700/90 text-slate-100 border border-slate-700/80 focus:ring-slate-500;
     }
-    
+
     .btn-danger {
-        @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+        @apply btn bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-lg shadow-rose-950/50 focus:ring-rose-500 border border-rose-400/30;
     }
     
     .btn-outline {
-        @apply btn border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-primary-500;
+        @apply btn border border-emerald-500/40 text-emerald-400 hover:bg-emerald-950/40 hover:border-emerald-400 focus:ring-emerald-500;
     }
     
     .input {
-        @apply block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+        @apply block w-full px-4 py-2.5 text-sm bg-slate-900/90 border border-slate-800 rounded-xl text-slate-100 shadow-inner placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 transition-all duration-200;
     }
     
     .label {
-        @apply block text-sm font-medium text-gray-700 mb-1;
+        @apply block text-sm font-medium text-slate-300 mb-1.5;
     }
     
     .card {
-        @apply bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden;
+        @apply glass-card;
     }
     
     .badge {
-        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+        @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase shadow-sm border;
     }
     
     .badge-open {
-        @apply badge bg-red-100 text-red-800;
+        @apply badge bg-rose-950/80 text-rose-400 border-rose-800/50 animate-pulse;
     }
     
     .badge-progress {
-        @apply badge bg-yellow-100 text-yellow-800;
+        @apply badge bg-amber-950/80 text-amber-400 border-amber-800/50;
     }
     
     .badge-closed {
-        @apply badge bg-green-100 text-green-800;
+        @apply badge bg-emerald-950/80 text-emerald-400 border-emerald-800/50;
     }
 }
 
-@layer utilities {
-    .text-balance {
-        text-wrap: balance;
-    }
-}
-
-/* Leaflet custom styles */
+/* Leaflet custom dark styles */
 .leaflet-container {
-    @apply rounded-xl;
+    @apply rounded-2xl bg-slate-950 font-sans !important;
 }
 
 .leaflet-popup-content-wrapper {
-    @apply rounded-lg shadow-lg;
+    @apply bg-slate-900/95 backdrop-blur-xl border border-slate-800 text-slate-100 rounded-xl shadow-2xl p-0 overflow-hidden !important;
+}
+
+.leaflet-popup-tip {
+    @apply bg-slate-900 border-slate-800 !important;
 }
 
 .leaflet-popup-content {
-    @apply p-2 m-0;
+    @apply p-3 m-0 text-slate-100 !important;
+}
+
+.leaflet-control-zoom a, .leaflet-control-layers-toggle {
+    @apply bg-slate-900/90 text-slate-100 border-slate-800 backdrop-blur-md rounded-lg shadow-lg hover:bg-slate-800 !important;
 }
 
 .marker-cluster-small {
-    background-color: rgba(181, 226, 140, 0.6) !important;
+    background-color: rgba(16, 185, 129, 0.4) !important;
+    border: 2px solid rgba(16, 185, 129, 0.8);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    border-radius: 9999px;
 }
 
 .marker-cluster-small div {
-    background-color: rgba(110, 204, 57, 0.6) !important;
+    background-color: rgba(6, 78, 59, 0.9) !important;
+    color: #34d399 !important;
+    font-weight: 700;
 }
 
 .marker-cluster-medium {
-    background-color: rgba(241, 211, 87, 0.6) !important;
+    background-color: rgba(245, 158, 11, 0.4) !important;
+    border: 2px solid rgba(245, 158, 11, 0.8);
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+    border-radius: 9999px;
 }
 
 .marker-cluster-medium div {
-    background-color: rgba(240, 194, 12, 0.6) !important;
+    background-color: rgba(120, 53, 15, 0.9) !important;
+    color: #fbbf24 !important;
+    font-weight: 700;
 }
 
 .marker-cluster-large {
-    background-color: rgba(253, 156, 115, 0.6) !important;
+    background-color: rgba(244, 63, 94, 0.4) !important;
+    border: 2px solid rgba(244, 63, 94, 0.8);
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.5);
+    border-radius: 9999px;
 }
 
 .marker-cluster-large div {
-    background-color: rgba(241, 128, 23, 0.6) !important;
+    background-color: rgba(136, 19, 55, 0.9) !important;
+    color: #fda4af !important;
+    font-weight: 700;
 }
 
-/* PWA offline indicator */
+/* Offline Indicator Banner */
 .offline-indicator {
-    @apply fixed bottom-4 right-4 z-50 px-4 py-2 bg-yellow-600 text-white rounded-lg shadow-lg flex items-center gap-2;
-}
-
-/* Map container */
-#map {
-    height: 100%;
-    width: 100%;
-}
-
-.map-container {
-    @apply relative h-full w-full;
-}
-
-/* Camera preview */
-.camera-preview {
-    @apply w-full aspect-video bg-gray-100 rounded-lg overflow-hidden;
-}
-
-.camera-preview video {
-    @apply w-full h-full object-cover;
+    @apply fixed bottom-5 right-5 z-50 px-5 py-3 bg-amber-500/90 text-slate-950 font-bold rounded-2xl shadow-glow-amber backdrop-blur-xl border border-amber-300/40 flex items-center gap-3 animate-bounce;
 }
