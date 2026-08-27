@@ -14,16 +14,22 @@ class UserController extends Controller
 {
     public function index()
     {
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+
         return Inertia::render('Dashboard/Users/Index', [
-            'user'  => Auth::user(),
+            'user'  => $currentUser,
             'users' => User::with('assignedBlocks')->orderBy('name')->get(),
         ]);
     }
 
     public function create()
     {
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+
         return Inertia::render('Dashboard/Users/Create', [
-            'user'   => Auth::user(),
+            'user'   => $currentUser,
             'blocks' => Block::where('is_active', true)->get(),
         ]);
     }
@@ -51,8 +57,11 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+
         return Inertia::render('Dashboard/Users/Edit', [
-            'user'       => Auth::user(),
+            'user'       => $currentUser,
             'editedUser' => $user,
             'blocks'     => Block::where('is_active', true)->get(),
         ]);

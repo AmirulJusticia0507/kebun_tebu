@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class ReportStatusController extends Controller
 {
     public function update(Request $request, Report $report)
     {
-        $this->authorize('update', $report);
+        Gate::authorize('update', $report);
 
         $validated = $request->validate([
             'status'     => 'required|in:OPEN,ON_PROGRESS,CLOSED',
