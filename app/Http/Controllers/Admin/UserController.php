@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Block;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -20,17 +19,6 @@ class UserController extends Controller
         return Inertia::render('Dashboard/Users/Index', [
             'user'  => $currentUser,
             'users' => User::with('assignedBlocks', 'roles')->orderBy('name')->get(),
-        ]);
-    }
-
-    public function create()
-    {
-        /** @var User $currentUser */
-        $currentUser = Auth::user();
-
-        return Inertia::render('Dashboard/Users/Create', [
-            'user'   => $currentUser,
-            'blocks' => Block::where('is_active', true)->get(),
         ]);
     }
 
@@ -55,18 +43,6 @@ class UserController extends Controller
         $newUser->assignRole($validated['role']);
 
         return redirect()->route('admin.users.index')->with('success', 'Petugas berhasil ditambahkan.');
-    }
-
-    public function edit(User $user)
-    {
-        /** @var User $currentUser */
-        $currentUser = Auth::user();
-
-        return Inertia::render('Dashboard/Users/Edit', [
-            'user'       => $currentUser,
-            'editedUser' => $user->load('roles'),
-            'blocks'     => Block::where('is_active', true)->get(),
-        ]);
     }
 
     public function update(Request $request, User $user)
