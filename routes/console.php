@@ -12,3 +12,6 @@ Artisan::command('inspire', function () {
 Schedule::command('sla:check-escalation')->hourly();
 Schedule::command('reports:auto-close-stale')->dailyAt('02:00');
 Schedule::command('reports:daily-digest')->dailyAt('07:00');
+Schedule::command('queue:monitor default:100')->everyMinute();
+Schedule::command('queue:prune-failed --hours=168')->daily();
+Schedule::command('activitylog:clean --days=365')->dailyAt('03:00');
