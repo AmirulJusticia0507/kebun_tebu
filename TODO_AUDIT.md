@@ -12,7 +12,7 @@ Dasar audit: kode, route, konfigurasi, build produksi, dan test yang tersedia di
 | Phase 4: QA Test Plan | Belum selesai | Baru ada satu file test awal; test runner belum dapat berjalan dan beberapa test tidak sesuai implementasi. |
 | Phase 4b: PWA Offline-First | Implementasi selesai, menunggu QA perangkat | Form, IndexedDB (termasuk foto), retry saat online, idempotency, cache form, manifest, dan service worker sudah tersambung. |
 | Phase 5: Notifications | Implementasi selesai, menunggu konfigurasi/QA | Database notification, WhatsApp, Web Push, SLA/digest, queue retry, dan notification center sudah tersedia. |
-| Phase 6: Security, Observability & Launch Prep | Sebagian | Auth, role middleware, policy, audit log, validasi upload, dan health endpoint tersedia; hardening, monitoring, CI, dan deployment belum siap. |
+| Phase 6: Security, Observability & Launch Prep | Sebagian besar | Hardening akses/upload/header, request tracing, dependency audit, queue monitoring, dan runbook deployment tersedia; CI dan QA launch masih menunggu. |
 
 ## Detail per fase
 
@@ -139,25 +139,37 @@ Yang sudah ada:
 - Activity log pada perubahan Report.
 - Laravel logging dan health endpoint `/up`.
 - Soft delete dan index database pada entitas utama.
+- Registrasi publik selalu membuat field officer; admin hanya dapat dibuat/dikelola admin.
+- Detail laporan dibatasi untuk admin/pemilik dan export/status dibatasi untuk admin.
+- Rate limit tersedia pada login, registrasi, reset password, token, laporan, sync, dan export.
+- Upload gambar dibatasi dimensinya, di-decode ulang, dinormalisasi orientasinya, dan disimpan sebagai WebP tanpa EXIF.
+- Security headers dan secure-cookie production guidance tersedia.
+- Setiap response/log request memiliki correlation ID.
+- Dependency production bebas advisory pada audit terakhir.
+- Queue monitoring, failed-job pruning, dan activity-log cleanup terjadwal.
+- Runbook deploy, backup/restore, rollback, smoke check, dan incident response tersedia.
 
 TODO keamanan prioritas tinggi:
 
-- [ ] Tutup self-registration role admin atau batasi registrasi hanya untuk field officer.
-- [ ] Tambahkan rate limit untuk login, token API, sync, export, dan endpoint sensitif.
-- [ ] Audit seluruh authorization dan konsistensikan pengecekan `role` dengan Spatie roles.
-- [ ] Batasi export berdasarkan role dan scope data.
-- [ ] Harden upload: nama acak, content inspection, image re-encode/EXIF stripping, dan malware scan sesuai kebutuhan risiko.
-- [ ] Tinjau pengecualian CSRF yang tidak digunakan (`stripe/*`) dan cookie exception placeholder.
-- [ ] Tambahkan security headers, HTTPS/cookie production settings, CORS review, dan secrets management.
+- [x] Tutup self-registration role admin atau batasi registrasi hanya untuk field officer.
+- [x] Tambahkan rate limit untuk login, token API, sync, export, dan endpoint sensitif.
+- [x] Audit authorization detail/status/export laporan.
+- [x] Batasi export berdasarkan role.
+- [x] Harden upload dengan validasi, image re-encode, nama acak, dan EXIF stripping.
+- [x] Hapus pengecualian CSRF dan cookie placeholder.
+- [x] Tambahkan security headers serta panduan HTTPS/cookie/secrets production.
+- [ ] Pertimbangkan malware scan jika profil risiko deployment membutuhkannya.
+- [ ] Konsistensikan seluruh penggunaan kolom `role` dengan Spatie roles dalam refactor terpisah.
 
 TODO observability dan launch:
 
-- [ ] Tambahkan structured logging dengan request/user/report correlation ID.
+- [x] Tambahkan request/user correlation ID pada logging dan response.
 - [ ] Tambahkan exception/error monitoring dan alerting.
-- [ ] Monitor queue, scheduler, failed jobs, SLA command, storage, database, dan disk.
+- [x] Tambahkan queue monitoring serta pruning failed jobs/audit log.
+- [ ] Tambahkan monitoring eksternal untuk scheduler, storage, database, disk, dan error alerting.
 - [ ] Buat CI untuk install, lint/static analysis, test, dan build.
-- [ ] Siapkan konfigurasi production: `APP_DEBUG=false`, queue worker, scheduler, cache, mail, storage link, dan backup.
-- [ ] Tambahkan runbook deploy, rollback, restore backup, incident response, dan smoke test.
+- [x] Dokumentasikan konfigurasi production, queue worker, scheduler, storage, dan backup.
+- [x] Tambahkan runbook deploy, rollback, restore backup, incident response, dan smoke test.
 - [ ] Lakukan migration rehearsal dan uji restore backup sebelum launch.
 - [ ] Jalankan security review, load test, dan UAT lapangan pada perangkat target.
 
