@@ -8,7 +8,7 @@ Dasar audit: kode, route, konfigurasi, build produksi, dan test yang tersedia di
 | Fase | Status audit | Ringkasan |
 |---|---|---|
 | Phase 2: Frontend Vue/Inertia | Selesai | Halaman autentikasi, dashboard, peta, daftar/form/detail laporan, dan halaman admin tersedia. Build produksi berhasil. |
-| Phase 3: Core Controllers | Selesai dengan catatan | Controller auth, dashboard, map, report, status report, notification, dan admin tersedia serta route terdaftar. Masih ada gap otorisasi dan konsistensi endpoint. |
+| Phase 3: Core Controllers | Selesai | Controller auth, dashboard, map, report, status, notification, dan admin tersedia; validasi, otorisasi, sync idempotent, serta perlindungan lifecycle data sudah ditutup. |
 | Phase 4: QA Test Plan | Belum selesai | Baru ada satu file test awal; test runner belum dapat berjalan dan beberapa test tidak sesuai implementasi. |
 | Phase 4b: PWA Offline-First | Implementasi selesai, menunggu QA perangkat | Form, IndexedDB (termasuk foto), retry saat online, idempotency, cache form, manifest, dan service worker sudah tersambung. |
 | Phase 5: Notifications | Implementasi selesai, menunggu konfigurasi/QA | Database notification, WhatsApp, Web Push, SLA/digest, queue retry, dan notification center sudah tersedia. |
@@ -33,7 +33,7 @@ Catatan lanjutan:
 - [ ] Tambahkan pengujian browser untuk alur kritis dan tampilan mobile.
 - [ ] Verifikasi manual seluruh state kosong, error, loading, dan aksesibilitas dasar.
 
-### [x] Phase 3 — Core Controllers, dengan catatan
+### [x] Phase 3 — Core Controllers
 
 Sudah tersedia:
 
@@ -43,16 +43,17 @@ Sudah tersedia:
 - CRUD laporan dasar, upload foto, status, CSV/GeoJSON export, dan endpoint offline sync.
 - CRUD admin untuk user, kategori, dan blok.
 - Notification center untuk membaca dan menandai notifikasi.
-- Seluruh route berhasil dimuat oleh `php artisan route:list` (50 route).
+- Seluruh route berhasil dimuat oleh `php artisan route:list`.
+- Detail laporan dibatasi untuk admin/pemilik; status dan export hanya untuk admin.
+- Offline batch sync tervalidasi, transactional, idempotent, menghitung duplikat, dan mengirim notifikasi laporan baru.
+- Filter map/report/export tervalidasi dan export CSV dilindungi dari formula injection.
+- Status laporan menjaga konsistensi `resolved_at` dan tidak mengirim notifikasi palsu untuk perubahan catatan saja.
+- Registrasi publik tidak dapat memilih admin.
+- Penghapusan user memakai soft delete sehingga laporan tidak ikut terhapus; admin terakhir juga dilindungi.
+- Kategori dengan laporan aktif maupun terarsip tidak dapat dihapus.
+- Endpoint user form yang merender halaman Vue tidak tersedia sudah dihapus; CRUD memakai modal index.
 
-TODO sebelum dinyatakan production-ready:
-
-- [ ] Batasi update status hanya untuk admin. Saat ini `ReportPolicy::update()` juga mengizinkan pemilik laporan.
-- [ ] Terapkan policy pada detail laporan dan export; saat ini semua user terautentikasi dapat membuka detail/export seluruh laporan.
-- [ ] Selaraskan URL dokumentasi/test export dengan route aktual: `/reports/export/csv` dan `/reports/export/geojson`.
-- [ ] Perkuat validasi endpoint sync (batas koordinat, field opsional, foto, idempotency/client UUID, dan transaksi database).
-- [ ] Cegah laporan ganda ketika retry sync terjadi.
-- [ ] Evaluasi registrasi publik yang mengizinkan pengguna memilih role `admin`.
+Validasi lanjutan dilakukan pada Phase 4 melalui feature tests.
 
 ### [ ] Phase 4 — QA Test Plan Implementation
 
