@@ -27,7 +27,7 @@ class WhatsAppService
 
             if (! $response->successful() || $response->json('status') === false) {
                 Log::warning('WhatsApp delivery failed.', ['user_id' => $user->id, 'status' => $response->status()]);
-                return false;
+                throw new \RuntimeException('WhatsApp provider rejected the message.');
             }
 
             Notification::create([
@@ -43,7 +43,7 @@ class WhatsAppService
             return true;
         } catch (\Throwable $exception) {
             Log::warning('WhatsApp delivery error.', ['user_id' => $user->id, 'error' => $exception->getMessage()]);
-            return false;
+            throw $exception;
         }
     }
 }

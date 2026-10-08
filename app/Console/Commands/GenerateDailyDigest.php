@@ -5,8 +5,8 @@ namespace App\Console\Commands;
 use App\Models\Report;
 use App\Models\Notification;
 use App\Models\User;
-use App\Services\WhatsAppService;
-use App\Services\WebPushService;
+use App\Jobs\SendWhatsAppNotification;
+use App\Jobs\SendWebPushNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -51,14 +51,14 @@ class GenerateDailyDigest extends Command
                 'sent_at' => now(),
             ]);
 
-            app(WhatsAppService::class)->send(
-                $admin,
+            SendWhatsAppNotification::dispatch(
+                $admin->id,
                 'reports.daily_digest',
                 $summary,
                 ['new_count' => $newCount, 'closed_count' => $closedCount, 'open_count' => $totalOpen],
             );
-            app(WebPushService::class)->send(
-                $admin,
+            SendWebPushNotification::dispatch(
+                $admin->id,
                 'reports.daily_digest',
                 'Ringkasan laporan harian',
                 $summary,

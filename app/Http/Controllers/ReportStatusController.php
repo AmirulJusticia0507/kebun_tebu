@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use App\Models\Notification;
 use App\Models\User;
-use App\Services\WhatsAppService;
-use App\Services\WebPushService;
+use App\Jobs\SendWhatsAppNotification;
+use App\Jobs\SendWebPushNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -49,14 +49,14 @@ class ReportStatusController extends Controller
             'sent_at' => now(),
         ]);
 
-        app(WhatsAppService::class)->send(
-            $report->user,
+        SendWhatsAppNotification::dispatch(
+            $report->user_id,
             'report.status_changed',
             "Status laporan {$report->title} berubah menjadi {$validated['status']}.",
             ['report_id' => $report->id, 'status' => $validated['status']],
         );
-        app(WebPushService::class)->send(
-            $report->user,
+        SendWebPushNotification::dispatch(
+            $report->user_id,
             'report.status_changed',
             'Status laporan berubah',
             "{$report->title}: {$validated['status']}",
