@@ -254,6 +254,7 @@ class ReportController extends Controller
 
         return response()->json([
             'message' => "{$createdCount} laporan offline berhasil disinkronkan.",
+            'count' => $createdCount,
             'created_count' => $createdCount,
             'duplicate_count' => $duplicateCount,
         ]);
