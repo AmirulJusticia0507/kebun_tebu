@@ -16,10 +16,10 @@ class ReportPolicy
         return $user->role === 'admin';
     }
 
-    /** Semua user authenticated bisa lihat laporan */
+    /** Admin atau pemilik laporan bisa melihat detail */
     public function view(User $user, Report $report): bool
     {
-        return true;
+        return $user->role === 'admin' || $user->id === $report->user_id;
     }
 
     /** Semua user bisa buat laporan */
@@ -28,10 +28,10 @@ class ReportPolicy
         return true;
     }
 
-    /** Admin atau pemilik laporan bisa update */
+    /** Hanya admin bisa mengubah status laporan */
     public function update(User $user, Report $report): bool
     {
-        return $user->role === 'admin' || $user->id === $report->user_id;
+        return $user->role === 'admin';
     }
 
     /** Hanya admin yang bisa hapus */

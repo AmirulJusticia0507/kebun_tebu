@@ -8,7 +8,6 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
-    role: 'field_officer',
     phone_number: '',
 });
 
@@ -24,7 +23,7 @@ const submit = () => {
                 <div class="card p-8">
                     <div class="text-center mb-8">
                         <h1 class="text-2xl font-bold text-gray-900">Buat Akun Baru</h1>
-                        <p class="mt-2 text-gray-600">Daftar sebagai petugas lapangan atau admin</p>
+                        <p class="mt-2 text-gray-600">Daftar sebagai petugas lapangan</p>
                     </div>
 
                     <form @submit.prevent="submit" class="space-y-6">
@@ -66,15 +65,6 @@ const submit = () => {
                                 placeholder="08xxxxxxxxxx"
                             />
                             <p v-if="form.errors.phone_number" class="mt-1 text-sm text-red-600">{{ form.errors.phone_number }}</p>
-                        </div>
-
-                        <div>
-                            <label for="role" class="label">Peran</label>
-                            <select id="role" v-model="form.role" class="input">
-                                <option value="field_officer">Petugas Lapangan</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                            <p v-if="form.errors.role" class="mt-1 text-sm text-red-600">{{ form.errors.role }}</p>
                         </div>
 
                         <div>

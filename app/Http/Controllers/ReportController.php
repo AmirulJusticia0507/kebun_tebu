@@ -12,6 +12,7 @@ use App\Jobs\SendWebPushNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class ReportController extends Controller
@@ -149,6 +150,7 @@ class ReportController extends Controller
 
     public function show(Report $report)
     {
+        Gate::authorize('view', $report);
         $report->load(['user', 'category', 'block', 'handler']);
 
         return Inertia::render('Reports/Show', [

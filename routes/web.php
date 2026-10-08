@@ -47,10 +47,10 @@ Route::middleware(['auth'])->group(function () {
     // Form laporan & offline sync (field_officer & admin)
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
-    Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
-    Route::post('/reports/sync', [ReportController::class, 'sync'])->name('reports.sync');
-    Route::get('/reports/export/geojson', [ReportController::class, 'exportGeoJson'])->name('reports.export.geojson');
-    Route::get('/reports/export/csv', [ReportController::class, 'exportCsv'])->name('reports.export.csv');
+    Route::post('/reports', [ReportController::class, 'store'])->middleware('throttle:30,1')->name('reports.store');
+    Route::post('/reports/sync', [ReportController::class, 'sync'])->middleware('throttle:30,1')->name('reports.sync');
+    Route::get('/reports/export/geojson', [ReportController::class, 'exportGeoJson'])->middleware(['role:admin', 'throttle:10,1'])->name('reports.export.geojson');
+    Route::get('/reports/export/csv', [ReportController::class, 'exportCsv'])->middleware(['role:admin', 'throttle:10,1'])->name('reports.export.csv');
     Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
 
     // Notification center

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Public Authentication API (Sanctum Bearer Tokens / OAuth)
-Route::post('/v1/auth/token', [AuthController::class, 'issueToken'])->name('api.v1.auth.token');
+Route::post('/v1/auth/token', [AuthController::class, 'issueToken'])->middleware('throttle:5,1')->name('api.v1.auth.token');
 
 // Protected API endpoints
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
@@ -25,5 +25,5 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('/blocks/geojson', [BlockController::class, 'geojson'])->name('api.v1.blocks.geojson');
 
     // Report Offline Sync API
-    Route::post('/reports/sync', [ReportController::class, 'sync'])->name('api.v1.reports.sync');
+    Route::post('/reports/sync', [ReportController::class, 'sync'])->middleware('throttle:30,1')->name('api.v1.reports.sync');
 });

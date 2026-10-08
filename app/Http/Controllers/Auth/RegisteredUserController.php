@@ -25,7 +25,6 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:100', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:field_officer,admin'],
             'phone_number' => ['nullable', 'string', 'max:20'],
         ]);
 
@@ -33,12 +32,12 @@ class RegisteredUserController extends Controller
             'name'              => $request->name,
             'email'             => $request->email,
             'password'          => Hash::make($request->password),
-            'role'              => $request->role,
+            'role'              => 'field_officer',
             'phone_number'      => $request->phone_number,
             'email_verified_at' => now(), // Auto-verify: no email verification flow needed
         ]);
 
-        $user->assignRole($request->role);
+        $user->assignRole('field_officer');
 
         Auth::login($user);
 
