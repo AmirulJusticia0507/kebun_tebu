@@ -215,8 +215,8 @@ const confirmLogout = () => {
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <!-- Brand & Links -->
-          <div class="flex items-center gap-8">
-            <Link href="/map" class="flex items-center gap-3 group">
+          <div class="flex min-w-0 items-center gap-3 md:gap-8">
+            <Link href="/map" class="flex shrink-0 items-center gap-2 sm:gap-3 group">
               <div
                 class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-lg shadow-emerald-950/40 group-hover:scale-105 transition-transform duration-200"
               >
@@ -230,13 +230,13 @@ const confirmLogout = () => {
                   />
                 </div>
               </div>
-              <div class="flex flex-col">
+              <div class="hidden min-[360px]:flex flex-col leading-tight">
                 <span
-                  class="font-display text-lg font-bold bg-gradient-to-r from-emerald-400 via-teal-200 to-white bg-clip-text text-transparent"
+                  class="whitespace-nowrap font-display text-lg font-bold bg-gradient-to-r from-emerald-400 via-teal-200 to-white bg-clip-text text-transparent"
                   >Kebun Tebu</span
                 >
                 <span
-                  class="text-[10px] font-semibold text-emerald-500 tracking-wider uppercase"
+                  class="whitespace-nowrap text-[10px] font-semibold text-emerald-500 tracking-wider uppercase"
                   >GIS Monitoring</span
                 >
               </div>
@@ -307,7 +307,7 @@ const confirmLogout = () => {
           </div>
 
           <!-- Right Controls & Profile -->
-          <div class="flex items-center gap-3 sm:gap-4">
+          <div class="flex shrink-0 items-center gap-1.5 sm:gap-4">
             <!-- Adaptive Dark / Light Mode Toggle Button -->
             <button
               @click="toggleTheme"
@@ -442,10 +442,10 @@ const confirmLogout = () => {
 
               <button
                 @click="confirmLogout"
-                class="btn btn-secondary text-xs py-2 px-3 hover:border-rose-500/50 hover:text-rose-400"
+                class="btn btn-secondary text-xs py-2 px-2 sm:px-3 hover:border-rose-500/50 hover:text-rose-400"
               >
                 <svg
-                  class="w-4 h-4 mr-1.5"
+                  class="w-4 h-4 sm:mr-1.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -457,7 +457,7 @@ const confirmLogout = () => {
                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                   />
                 </svg>
-                Keluar
+                <span class="hidden sm:inline">Keluar</span>
               </button>
             </div>
           </div>
