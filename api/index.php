@@ -19,6 +19,9 @@ putenv("APP_PACKAGES_CACHE={$tmp}/framework/cache/packages.php");
 putenv("APP_SERVICES_CACHE={$tmp}/framework/cache/services.php");
 putenv("APP_CONFIG_CACHE={$tmp}/framework/cache/config.php");
 putenv("APP_ROUTES_CACHE={$tmp}/framework/cache/routes-v7.php");
+if (getenv('MONITORING_HEARTBEAT_FILE') === false) {
+    putenv('MONITORING_HEARTBEAT_FILE='); // cron artisan tidak ada di serverless — health check scheduler dilewati
+}
 
 if (($_SERVER['REQUEST_URI'] ?? '') === '/__diag__') {
     header('Content-Type: text/plain; charset=utf-8');
