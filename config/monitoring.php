@@ -27,5 +27,5 @@ return [
 
     // Heartbeat scheduler. Set MONITORING_HEARTBEAT_FILE="" di serverless
     // (Vercel/Lambda) karena cron artisan tidak berjalan — check dilewati.
-    'heartbeat_file' => env('MONITORING_HEARTBEAT_FILE', storage_path('framework/schedule-heartbeat.json')),
+    'heartbeat_file' => env('MONITORING_HEARTBEAT_FILE', env('VERCEL') ? '' : storage_path('framework/schedule-heartbeat.json')),
 ];
