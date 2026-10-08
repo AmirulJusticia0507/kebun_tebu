@@ -23,34 +23,31 @@ if (getenv('MONITORING_HEARTBEAT_FILE') === false) {
     putenv('MONITORING_HEARTBEAT_FILE='); // cron artisan tidak ada di serverless — health check scheduler dilewati
 }
 
-if (($_SERVER['REQUEST_URI'] ?? '') === '/__diag__') {
-    header('Content-Type: text/plain; charset=utf-8');
-    foreach (['laravel.log', 'fatal.log'] as $f) {
-        $p = "{$tmp}/logs/{$f}";
-        echo "=== {$f} ===\n";
-        echo is_file($p) ? file_get_contents($p) : "(missing)\n";
-        echo "\n";
-    }
-    exit;
-}
-
 require $root.'/vendor/autoload.php';
 
 $app = require_once $root.'/bootstrap/app.php';
 $app->useStoragePath($tmp);
 
-$kernel = $app->make(Kernel::class);
-
 if (($_SERVER['REQUEST_URI'] ?? '') === '/__diag__') {
     header('Content-Type: text/plain; charset=utf-8');
-    foreach (['laravel.log', 'fatal.log'] as $f) {
-        $p = "{$tmp}/logs/{$f}";
-        echo "=== {$f} ===\n";
-        echo is_file($p) ? file_get_contents($p) : "(missing)\n";
-        echo "\n";
+    try {
+        $app->boot();
+        echo "trans: "; var_dump(@trans('Server Error', [], null));
+    } catch (Throwable $e) {
+        echo 'trans ERROR: '.get_class($e).': '.$e->getMessage()."\n@".$e->getFile().':'.$e->getLine()."\n";
+    }
+    try {
+        $kernel = $app->make(Kernel::class);
+        $sub = Request::create('/', 'GET');
+        $resp = $kernel->handle($sub);
+        echo "GET / status: ".$resp->getStatusCode()."\n";
+    } catch (Throwable $e) {
+        echo 'DISPATCH ERROR: '.get_class($e).': '.$e->getMessage()."\n@".$e->getFile().':'.$e->getLine()."\n";
     }
     exit;
 }
+
+$kernel = $app->make(Kernel::class);
 
 try {
     $response = $kernel->handle($request = Request::capture());
