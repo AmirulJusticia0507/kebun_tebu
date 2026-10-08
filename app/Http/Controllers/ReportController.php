@@ -13,7 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -116,6 +118,13 @@ class ReportController extends Controller
                 : null,
         ]);
 
+        $this->notifyAdminsAboutNewReport($report);
+
+        return redirect()->route('map')->with('success', 'Laporan berhasil dikirim!');
+    }
+
+    private function notifyAdminsAboutNewReport(Report $report): void
+    {
         User::where('role', 'admin')->each(function (User $admin) use ($report) {
             Notification::create([
                 'type' => 'report.created',
@@ -145,8 +154,6 @@ class ReportController extends Controller
                 ['report_id' => $report->id, 'url' => route('reports.show', $report)],
             );
         });
-
-        return redirect()->route('map')->with('success', 'Laporan berhasil dikirim!');
     }
 
     private function storeSanitizedPhoto(\Illuminate\Http\UploadedFile $photo): string
@@ -191,44 +198,58 @@ class ReportController extends Controller
     public function sync(Request $request)
     {
         $validated = $request->validate([
-            'drafts'               => 'required|array',
+            'drafts'               => 'required|array|min:1|max:50',
             'drafts.*.title'       => 'required|string|max:150',
-            'drafts.*.client_uuid' => 'nullable|uuid',
+            'drafts.*.client_uuid' => 'required|uuid|distinct',
             'drafts.*.category_id' => 'required|exists:categories,id',
-            'drafts.*.latitude'    => 'required|numeric',
-            'drafts.*.longitude'   => 'required|numeric',
+            'drafts.*.block_id'    => 'nullable|exists:blocks,id',
+            'drafts.*.block_code'  => 'nullable|string|max:50',
+            'drafts.*.description' => 'nullable|string',
+            'drafts.*.latitude'    => 'required|numeric|between:-90,90',
+            'drafts.*.longitude'   => 'required|numeric|between:-180,180',
+            'drafts.*.created_at'  => 'nullable|date|before_or_equal:now',
+            'drafts.*.checklist_answers' => 'nullable|array',
         ]);
 
-        $createdCount = 0;
-        foreach ($validated['drafts'] as $item) {
-            $category = Category::find($item['category_id']);
-            $attributes = [
-                'user_id'           => Auth::id(),
-                'client_uuid'       => $item['client_uuid'] ?? null,
-                'category_id'       => $item['category_id'],
-                'block_id'          => $item['block_id'] ?? null,
-                'title'             => $item['title'],
-                'description'       => $item['description'] ?? null,
-                'latitude'          => $item['latitude'],
-                'longitude'         => $item['longitude'],
-                'status'            => 'OPEN',
-                'reported_at'       => $item['created_at'] ?? now(),
-                'checklist_answers' => $item['checklist_answers'] ?? null,
-                'sla_deadline'      => $category?->sla_hours ? now()->addHours($category->sla_hours) : null,
-            ];
+        $createdReports = DB::transaction(function () use ($validated) {
+            $created = collect();
 
-            empty($item['client_uuid'])
-                ? Report::create($attributes)
-                : Report::firstOrCreate(
+            foreach ($validated['drafts'] as $item) {
+                $category = Category::findOrFail($item['category_id']);
+                $reportedAt = isset($item['created_at']) ? Carbon::parse($item['created_at']) : now();
+                $report = Report::firstOrCreate(
                     ['user_id' => Auth::id(), 'client_uuid' => $item['client_uuid']],
-                    $attributes,
+                    [
+                        'category_id' => $item['category_id'],
+                        'block_id' => $item['block_id'] ?? null,
+                        'block_code' => $item['block_code'] ?? null,
+                        'title' => $item['title'],
+                        'description' => $item['description'] ?? null,
+                        'latitude' => $item['latitude'],
+                        'longitude' => $item['longitude'],
+                        'status' => 'OPEN',
+                        'reported_at' => $reportedAt,
+                        'checklist_answers' => $item['checklist_answers'] ?? null,
+                        'sla_deadline' => $category->sla_hours ? $reportedAt->copy()->addHours($category->sla_hours) : null,
+                    ],
                 );
-            $createdCount++;
-        }
+
+                if ($report->wasRecentlyCreated) {
+                    $created->push($report);
+                }
+            }
+
+            return $created;
+        });
+
+        $createdReports->each(fn (Report $report) => $this->notifyAdminsAboutNewReport($report));
+        $createdCount = $createdReports->count();
+        $duplicateCount = count($validated['drafts']) - $createdCount;
 
         return response()->json([
             'message' => "{$createdCount} laporan offline berhasil disinkronkan.",
-            'count'   => $createdCount,
+            'created_count' => $createdCount,
+            'duplicate_count' => $duplicateCount,
         ]);
     }
 
