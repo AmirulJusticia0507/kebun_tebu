@@ -1,0 +1,13 @@
+.env
+.env.*
+.git
+.pest.php
+.phpunit.cache
+.vercel
+node_modules
+phpunit.xml
+public/sw.js
+resources/js/Composables
+storage/logs/*
+tests
+vendor
