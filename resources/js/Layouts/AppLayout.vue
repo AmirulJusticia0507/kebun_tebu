@@ -94,7 +94,8 @@ const confirmLogout = () => {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            axios.post('/logout').then(() => {
+            axios.post('/logout').then(async () => {
+                if ('caches' in window) await caches.delete('app-pages-cache');
                 window.location.href = '/';
             });
         }

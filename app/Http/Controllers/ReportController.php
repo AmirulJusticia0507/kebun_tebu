@@ -62,6 +62,7 @@ class ReportController extends Controller
     {
         $validated = $request->validate([
             'title'             => 'required|string|max:150',
+            'client_uuid'       => 'nullable|uuid',
             'category_id'       => 'required|exists:categories,id',
             'block_id'          => 'nullable|exists:blocks,id',
             'block_code'        => 'nullable|string|max:50',
@@ -71,6 +72,16 @@ class ReportController extends Controller
             'photo'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'checklist_answers' => 'nullable|array',
         ]);
+
+        if (!empty($validated['client_uuid'])) {
+            $existing = Report::where('user_id', Auth::id())
+                ->where('client_uuid', $validated['client_uuid'])
+                ->first();
+
+            if ($existing) {
+                return redirect()->route('map')->with('success', 'Laporan sudah tersinkronisasi.');
+            }
+        }
 
         $photoUrl = null;
         if ($request->hasFile('photo')) {
@@ -82,6 +93,7 @@ class ReportController extends Controller
 
         Report::create([
             'user_id'           => Auth::id(),
+            'client_uuid'       => $validated['client_uuid'] ?? null,
             'category_id'       => $validated['category_id'],
             'block_id'          => $validated['block_id'] ?? null,
             'block_code'        => $validated['block_code'] ?? null,
@@ -116,6 +128,7 @@ class ReportController extends Controller
         $validated = $request->validate([
             'drafts'               => 'required|array',
             'drafts.*.title'       => 'required|string|max:150',
+            'drafts.*.client_uuid' => 'nullable|uuid',
             'drafts.*.category_id' => 'required|exists:categories,id',
             'drafts.*.latitude'    => 'required|numeric',
             'drafts.*.longitude'   => 'required|numeric',
@@ -124,8 +137,9 @@ class ReportController extends Controller
         $createdCount = 0;
         foreach ($validated['drafts'] as $item) {
             $category = Category::find($item['category_id']);
-            Report::create([
+            $attributes = [
                 'user_id'           => Auth::id(),
+                'client_uuid'       => $item['client_uuid'] ?? null,
                 'category_id'       => $item['category_id'],
                 'block_id'          => $item['block_id'] ?? null,
                 'title'             => $item['title'],
@@ -136,7 +150,14 @@ class ReportController extends Controller
                 'reported_at'       => $item['created_at'] ?? now(),
                 'checklist_answers' => $item['checklist_answers'] ?? null,
                 'sla_deadline'      => $category?->sla_hours ? now()->addHours($category->sla_hours) : null,
-            ]);
+            ];
+
+            empty($item['client_uuid'])
+                ? Report::create($attributes)
+                : Report::firstOrCreate(
+                    ['user_id' => Auth::id(), 'client_uuid' => $item['client_uuid']],
+                    $attributes,
+                );
             $createdCount++;
         }
 
