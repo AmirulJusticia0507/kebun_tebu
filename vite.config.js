@@ -113,7 +113,10 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './resources/js'),
-            'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy'),
+            // ziggy-js diambil dari node_modules (versi sama dengan paket PHP
+            // tightenco/ziggy), sehingga build tetap jalan di Vercel/CI yang
+            // tidak menyediakan direktori vendor/.
+            'ziggy-js': path.resolve(__dirname, './node_modules/ziggy-js'),
         },
     },
 });
