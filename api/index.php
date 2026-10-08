@@ -16,12 +16,41 @@ foreach (['framework/cache', 'framework/sessions', 'framework/views', 'logs'] as
 
 putenv("VIEW_COMPILED_PATH={$tmp}/framework/views");
 
+if (($_SERVER['REQUEST_URI'] ?? '') === '/__diag__') {
+    header('Content-Type: text/plain; charset=utf-8');
+    foreach (['laravel.log', 'fatal.log'] as $f) {
+        $p = "{$tmp}/logs/{$f}";
+        echo "=== {$f} ===\n";
+        echo is_file($p) ? file_get_contents($p) : "(missing)\n";
+        echo "\n";
+    }
+    exit;
+}
+
 require $root . '/vendor/autoload.php';
 
 $app = require_once $root . '/bootstrap/app.php';
 $app->useStoragePath($tmp);
 
 $kernel = $app->make(Kernel::class);
-$response = $kernel->handle($request = Request::capture());
+
+if (($_SERVER['REQUEST_URI'] ?? '') === '/__diag__') {
+    header('Content-Type: text/plain; charset=utf-8');
+    foreach (['laravel.log', 'fatal.log'] as $f) {
+        $p = "{$tmp}/logs/{$f}";
+        echo "=== {$f} ===\n";
+        echo is_file($p) ? file_get_contents($p) : "(missing)\n";
+        echo "\n";
+    }
+    exit;
+}
+
+try {
+    $response = $kernel->handle($request = Request::capture());
+} catch (\Throwable $e) {
+    file_put_contents("{$tmp}/logs/fatal.log", get_class($e).': '.$e->getMessage()."\n".$e->getTraceAsString());
+    fwrite(STDERR, 'FATAL-OUTSIDE-HANDLER: '.get_class($e).': '.$e->getMessage()."\n");
+    throw $e;
+}
 $response->send();
 $kernel->terminate($request, $response);
