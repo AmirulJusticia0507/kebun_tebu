@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Notification;
 use App\Models\Report;
 use App\Models\User;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -126,6 +127,13 @@ class ReportController extends Controller
                 'channel' => 'database',
                 'sent_at' => now(),
             ]);
+
+            app(WhatsAppService::class)->send(
+                $admin,
+                'report.created',
+                "Laporan baru: {$report->title}",
+                ['report_id' => $report->id],
+            );
         });
 
         return redirect()->route('map')->with('success', 'Laporan berhasil dikirim!');

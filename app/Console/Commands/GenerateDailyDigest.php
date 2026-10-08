@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Report;
 use App\Models\Notification;
 use App\Models\User;
+use App\Services\WhatsAppService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -48,6 +49,13 @@ class GenerateDailyDigest extends Command
                 'channel' => 'database',
                 'sent_at' => now(),
             ]);
+
+            app(WhatsAppService::class)->send(
+                $admin,
+                'reports.daily_digest',
+                $summary,
+                ['new_count' => $newCount, 'closed_count' => $closedCount, 'open_count' => $totalOpen],
+            );
         });
 
         return self::SUCCESS;

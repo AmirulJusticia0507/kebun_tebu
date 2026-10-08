@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use App\Models\Notification;
 use App\Models\User;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -46,6 +47,13 @@ class ReportStatusController extends Controller
             'channel' => 'database',
             'sent_at' => now(),
         ]);
+
+        app(WhatsAppService::class)->send(
+            $report->user,
+            'report.status_changed',
+            "Status laporan {$report->title} berubah menjadi {$validated['status']}.",
+            ['report_id' => $report->id, 'status' => $validated['status']],
+        );
 
         return back()->with('success', 'Status laporan berhasil diperbarui.');
     }

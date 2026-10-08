@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Report;
 use App\Models\Notification;
 use App\Models\User;
+use App\Services\WhatsAppService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -48,6 +49,13 @@ class CheckSlaEscalation extends Command
                     'channel' => 'database',
                     'sent_at' => now(),
                 ]);
+
+                app(WhatsAppService::class)->send(
+                    $admin,
+                    'report.sla_warning',
+                    "Peringatan SLA: {$report->title} mendekati atau melewati batas waktu.",
+                    ['report_id' => $report->id],
+                );
             });
         }
 
