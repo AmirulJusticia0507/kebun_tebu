@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Category extends Model
 {
@@ -27,7 +28,8 @@ class Category extends Model
         ];
     }
 
-    public function reports()
+    /** @return HasMany<Report, $this> */
+    public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
     }

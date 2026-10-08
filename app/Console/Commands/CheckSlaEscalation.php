@@ -2,17 +2,18 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Report;
-use App\Models\Notification;
-use App\Models\User;
-use App\Jobs\SendWhatsAppNotification;
 use App\Jobs\SendWebPushNotification;
+use App\Jobs\SendWhatsAppNotification;
+use App\Models\Notification;
+use App\Models\Report;
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 class CheckSlaEscalation extends Command
 {
     protected $signature = 'sla:check-escalation';
+
     protected $description = 'Check reports close to SLA deadline and log warnings / notify admins';
 
     public function handle(): int

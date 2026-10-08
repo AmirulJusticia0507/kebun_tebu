@@ -4,18 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Block;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class BlockController extends Controller
 {
     public function index()
     {
         return Inertia::render('Dashboard/Blocks/Index', [
-            'user'   => Auth::user(),
+            'user' => Auth::user(),
             'blocks' => Block::with('pic')->withCount('reports')->get(),
         ]);
     }
@@ -23,14 +22,14 @@ class BlockController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'code'        => 'required|string|max:20|unique:blocks,code',
-            'name'        => 'required|string|max:100',
-            'hectare'     => 'nullable|numeric|min:0',
+            'code' => 'required|string|max:20|unique:blocks,code',
+            'name' => 'required|string|max:100',
+            'hectare' => 'nullable|numeric|min:0',
             'pic_user_id' => ['nullable', Rule::exists('users', 'id')->whereNull('deleted_at')->where('role', 'field_officer')],
-            'polygon'     => 'nullable|array',
+            'polygon' => 'nullable|array',
             'polygon.type' => ['required_with:polygon', Rule::in(['Polygon', 'MultiPolygon'])],
             'polygon.coordinates' => 'required_with:polygon|array',
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         Block::create($validated);
@@ -41,14 +40,14 @@ class BlockController extends Controller
     public function update(Request $request, Block $block)
     {
         $validated = $request->validate([
-            'code'        => "required|string|max:20|unique:blocks,code,{$block->id}",
-            'name'        => 'required|string|max:100',
-            'hectare'     => 'nullable|numeric|min:0',
+            'code' => "required|string|max:20|unique:blocks,code,{$block->id}",
+            'name' => 'required|string|max:100',
+            'hectare' => 'nullable|numeric|min:0',
             'pic_user_id' => ['nullable', Rule::exists('users', 'id')->whereNull('deleted_at')->where('role', 'field_officer')],
-            'polygon'     => 'nullable|array',
+            'polygon' => 'nullable|array',
             'polygon.type' => ['required_with:polygon', Rule::in(['Polygon', 'MultiPolygon'])],
             'polygon.coordinates' => 'required_with:polygon|array',
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         $block->update($validated);
@@ -67,20 +66,20 @@ class BlockController extends Controller
     {
         $blocks = Block::with('pic')->where('is_active', true)->whereNotNull('polygon')->get();
 
-        $features = $blocks->map(fn($block) => [
-            'type'       => 'Feature',
+        $features = $blocks->map(fn ($block) => [
+            'type' => 'Feature',
             'properties' => [
-                'id'      => $block->id,
-                'code'    => $block->code,
-                'name'    => $block->name,
+                'id' => $block->id,
+                'code' => $block->code,
+                'name' => $block->name,
                 'hectare' => $block->hectare,
-                'pic'     => $block->pic?->name,
+                'pic' => $block->pic?->name,
             ],
-            'geometry'   => $block->polygon,
+            'geometry' => $block->polygon,
         ]);
 
         return response()->json([
-            'type'     => 'FeatureCollection',
+            'type' => 'FeatureCollection',
             'features' => $features,
         ]);
     }

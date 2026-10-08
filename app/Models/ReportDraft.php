@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ReportDraft extends Model
 {
@@ -36,19 +37,21 @@ class ReportDraft extends Model
         ];
     }
 
-    public function user()
+    /** @return BelongsTo<User, $this> */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function category()
+    /** @return BelongsTo<Category, $this> */
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
     public function isSynced(): bool
     {
-        return !is_null($this->synced_at);
+        return ! is_null($this->synced_at);
     }
 
     public function getActivitylogOptions(): LogOptions

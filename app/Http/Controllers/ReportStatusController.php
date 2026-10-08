@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Report;
-use App\Models\Notification;
-use App\Models\User;
-use App\Jobs\SendWhatsAppNotification;
 use App\Jobs\SendWebPushNotification;
+use App\Jobs\SendWhatsAppNotification;
+use App\Models\Notification;
+use App\Models\Report;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -18,19 +18,19 @@ class ReportStatusController extends Controller
         Gate::authorize('update', $report);
 
         $validated = $request->validate([
-            'status'     => 'required|in:OPEN,ON_PROGRESS,CLOSED',
+            'status' => 'required|in:OPEN,ON_PROGRESS,CLOSED',
             'admin_note' => 'nullable|string|max:1000',
         ]);
 
         $statusChanged = $report->status !== $validated['status'];
 
         $data = [
-            'status'     => $validated['status'],
+            'status' => $validated['status'],
             'admin_note' => $validated['admin_note'] ?? $report->admin_note,
             'handled_by' => Auth::id(),
         ];
 
-        if ($validated['status'] === 'CLOSED' && !$report->isClosed()) {
+        if ($validated['status'] === 'CLOSED' && ! $report->isClosed()) {
             $data['resolved_at'] = now();
         } elseif ($validated['status'] !== 'CLOSED') {
             $data['resolved_at'] = null;

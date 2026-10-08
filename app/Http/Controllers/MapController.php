@@ -7,8 +7,8 @@ use App\Models\Category;
 use App\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class MapController extends Controller
 {
@@ -51,11 +51,11 @@ class MapController extends Controller
         $blocks = Block::with('pic')->where('is_active', true)->get();
 
         return Inertia::render('Map/Index', [
-            'user'       => Auth::user(),
-            'reports'    => $reports,
+            'user' => Auth::user(),
+            'reports' => $reports,
             'categories' => $categories,
-            'blocks'     => $blocks,
-            'filters'    => $filters,
+            'blocks' => $blocks,
+            'filters' => $filters,
         ]);
     }
 }

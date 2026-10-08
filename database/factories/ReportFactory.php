@@ -6,7 +6,9 @@ use App\Models\Category;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Carbon;
 
+/** @extends Factory<Report> */
 class ReportFactory extends Factory
 {
     protected $model = Report::class;
@@ -35,7 +37,7 @@ class ReportFactory extends Factory
             'voice_note_url' => null,
             'checklist_answers' => null,
             'sla_deadline' => $category->sla_hours
-                ? \Illuminate\Support\Carbon::parse($reportedAt)->addHours($category->sla_hours)
+                ? Carbon::parse($reportedAt)->addHours($category->sla_hours)
                 : null,
         ];
     }

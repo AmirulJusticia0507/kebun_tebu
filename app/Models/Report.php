@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Report extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -46,22 +47,26 @@ class Report extends Model
         ];
     }
 
-    public function user()
+    /** @return BelongsTo<User, $this> */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function category()
+    /** @return BelongsTo<Category, $this> */
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function block()
+    /** @return BelongsTo<Block, $this> */
+    public function block(): BelongsTo
     {
         return $this->belongsTo(Block::class);
     }
 
-    public function handler()
+    /** @return BelongsTo<User, $this> */
+    public function handler(): BelongsTo
     {
         return $this->belongsTo(User::class, 'handled_by');
     }
@@ -90,9 +95,10 @@ class Report extends Model
 
     public function isOverdue(): bool
     {
-        if ($this->isClosed() || !$this->sla_deadline) {
+        if ($this->isClosed() || ! $this->sla_deadline) {
             return false;
         }
+
         return now()->greaterThan($this->sla_deadline);
     }
 }

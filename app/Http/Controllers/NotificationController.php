@@ -14,9 +14,10 @@ class NotificationController extends Controller
         $user = Auth::user();
         $query = $user ? $user->notifications()->where('channel', 'database') : null;
         $notifications = $query ? (clone $query)->latest()->take(20)->get() : [];
+
         return response()->json([
             'notifications' => $notifications,
-            'unread_count'  => $query ? (clone $query)->whereNull('read_at')->count() : 0,
+            'unread_count' => $query ? (clone $query)->whereNull('read_at')->count() : 0,
         ]);
     }
 
@@ -39,6 +40,7 @@ class NotificationController extends Controller
         if ($user) {
             $user->notifications()->where('channel', 'database')->whereNull('read_at')->update(['read_at' => now()]);
         }
+
         return response()->json(['success' => true]);
     }
 }

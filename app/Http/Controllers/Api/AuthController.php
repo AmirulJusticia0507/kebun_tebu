@@ -16,8 +16,8 @@ class AuthController extends Controller
     public function issueToken(Request $request)
     {
         $request->validate([
-            'email'       => 'required|email',
-            'password'    => 'required|string',
+            'email' => 'required|email',
+            'password' => 'required|string',
             'device_name' => 'nullable|string',
         ]);
 
@@ -33,14 +33,14 @@ class AuthController extends Controller
         $token = $user->createToken($deviceName)->plainTextToken;
 
         return response()->json([
-            'status'       => 'success',
-            'token_type'   => 'Bearer',
+            'status' => 'success',
+            'token_type' => 'Bearer',
             'access_token' => $token,
-            'user'         => [
-                'id'    => $user->id,
-                'name'  => $user->name,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
                 'email' => $user->email,
-                'role'  => $user->role,
+                'role' => $user->role,
             ],
         ]);
     }
@@ -54,13 +54,13 @@ class AuthController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data'   => [
-                'id'           => $user->id,
-                'name'         => $user->name,
-                'email'        => $user->email,
-                'role'         => $user->role,
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
                 'phone_number' => $user->phone_number,
-                'permissions'  => $user->getAllPermissions()->pluck('name'),
+                'permissions' => $user->getAllPermissions()->pluck('name'),
             ],
         ]);
     }
@@ -73,7 +73,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Token API berhasil dicabut (logged out).',
         ]);
     }

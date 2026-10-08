@@ -3,7 +3,6 @@
 use App\Models\Block;
 use App\Models\Category;
 use App\Models\Report;
-use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 

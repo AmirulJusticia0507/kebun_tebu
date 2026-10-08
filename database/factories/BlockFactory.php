@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Block;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/** @extends Factory<Block> */
 class BlockFactory extends Factory
 {
     protected $model = Block::class;
@@ -12,7 +13,7 @@ class BlockFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => 'BLOK-' . strtoupper(fake()->unique()->bothify('##-??')),
+            'code' => 'BLOK-'.strtoupper(fake()->unique()->bothify('##-??')),
             'name' => fake()->words(2, true),
             'polygon' => null,
             'hectare' => fake()->randomFloat(2, 1, 500),

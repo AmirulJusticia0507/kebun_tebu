@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
 class AdminSeeder extends Seeder
 {
@@ -15,9 +14,9 @@ class AdminSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['email' => 'admin@kebuntebu.id'],
             [
-                'name'         => 'Administrator Kebun',
-                'password'     => Hash::make('password'),
-                'role'         => 'admin',
+                'name' => 'Administrator Kebun',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
                 'phone_number' => '08123456789',
             ]
         );
@@ -27,9 +26,9 @@ class AdminSeeder extends Seeder
         $officer = User::firstOrCreate(
             ['email' => 'petugas@kebuntebu.id'],
             [
-                'name'         => 'Petugas Lapangan',
-                'password'     => Hash::make('password'),
-                'role'         => 'field_officer',
+                'name' => 'Petugas Lapangan',
+                'password' => Hash::make('password'),
+                'role' => 'field_officer',
                 'phone_number' => '08987654321',
             ]
         );

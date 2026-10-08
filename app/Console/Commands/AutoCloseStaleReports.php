@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 class AutoCloseStaleReports extends Command
 {
     protected $signature = 'reports:auto-close-stale';
+
     protected $description = 'Auto-close OPEN reports older than 30 days';
 
     public function handle(): int
@@ -20,8 +21,8 @@ class AutoCloseStaleReports extends Command
         $updated = 0;
         foreach ($staleReports as $report) {
             $report->update([
-                'status'      => 'CLOSED',
-                'admin_note'  => trim(($report->admin_note ?? '') . "\n[System Auto-Closed]: Laporan ditutup otomatis karena > 30 hari tanpa penanganan."),
+                'status' => 'CLOSED',
+                'admin_note' => trim(($report->admin_note ?? '')."\n[System Auto-Closed]: Laporan ditutup otomatis karena > 30 hari tanpa penanganan."),
                 'resolved_at' => now(),
             ]);
             $updated++;

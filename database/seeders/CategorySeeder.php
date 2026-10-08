@@ -11,10 +11,10 @@ class CategorySeeder extends Seeder
     {
         $categories = [
             [
-                'name'        => 'Kebakaran Tebu',
+                'name' => 'Kebakaran Tebu',
                 'icon_marker' => 'fire.png',
-                'color_code'  => '#ef4444',
-                'sla_hours'   => 2,
+                'color_code' => '#ef4444',
+                'sla_hours' => 2,
                 'checklist_template' => [
                     ['label' => 'Api masih menyala?', 'type' => 'boolean'],
                     ['label' => 'Estimasi luas terbakar (hektar)', 'type' => 'number'],
@@ -23,10 +23,10 @@ class CategorySeeder extends Seeder
                 ],
             ],
             [
-                'name'        => 'Serangan Hama',
+                'name' => 'Serangan Hama',
                 'icon_marker' => 'pest.png',
-                'color_code'  => '#f59e0b',
-                'sla_hours'   => 24,
+                'color_code' => '#f59e0b',
+                'sla_hours' => 24,
                 'checklist_template' => [
                     ['label' => 'Jenis hama yang menyerang', 'type' => 'text'],
                     ['label' => 'Estimasi luas terserang (hektar)', 'type' => 'number'],
@@ -34,10 +34,10 @@ class CategorySeeder extends Seeder
                 ],
             ],
             [
-                'name'        => 'Penyakit Tanaman',
+                'name' => 'Penyakit Tanaman',
                 'icon_marker' => 'disease.png',
-                'color_code'  => '#8b5cf6',
-                'sla_hours'   => 48,
+                'color_code' => '#8b5cf6',
+                'sla_hours' => 48,
                 'checklist_template' => [
                     ['label' => 'Gejala yang terlihat', 'type' => 'text'],
                     ['label' => 'Estimasi tanaman terkena (%)', 'type' => 'number'],
@@ -45,10 +45,10 @@ class CategorySeeder extends Seeder
                 ],
             ],
             [
-                'name'        => 'Banjir / Genangan',
+                'name' => 'Banjir / Genangan',
                 'icon_marker' => 'flood.png',
-                'color_code'  => '#3b82f6',
-                'sla_hours'   => 12,
+                'color_code' => '#3b82f6',
+                'sla_hours' => 12,
                 'checklist_template' => [
                     ['label' => 'Ketinggian air (cm)', 'type' => 'number'],
                     ['label' => 'Luas area tergenang (hektar)', 'type' => 'number'],
@@ -56,10 +56,10 @@ class CategorySeeder extends Seeder
                 ],
             ],
             [
-                'name'        => 'Kendala Lainnya',
+                'name' => 'Kendala Lainnya',
                 'icon_marker' => 'warning.png',
-                'color_code'  => '#6b7280',
-                'sla_hours'   => 72,
+                'color_code' => '#6b7280',
+                'sla_hours' => 72,
                 'checklist_template' => [],
             ],
         ];

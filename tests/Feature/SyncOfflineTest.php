@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Category;
-use App\Models\Notification;
 use App\Models\Report;
 
 function makeDraft(array $overrides = []): array

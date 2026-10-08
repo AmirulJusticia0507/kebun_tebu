@@ -1,10 +1,10 @@
 <?php
 
-use App\Models\Block;
 use App\Models\Category;
 use App\Models\Report;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 function validReportPayload(array $overrides = []): array
 {
@@ -112,7 +112,7 @@ it('stores uploaded photo as sanitized webp', function () {
     $report = Report::first();
     expect($report->photo_url)->not->toBeNull()
         ->and($report->photo_url)->toStartWith('/storage/reports/photos/');
-    Storage::disk('public')->assertExists(\Illuminate\Support\Str::after($report->photo_url, '/storage/'));
+    Storage::disk('public')->assertExists(Str::after($report->photo_url, '/storage/'));
 });
 
 it('rejects photo larger than 5 MB', function () {
@@ -161,7 +161,7 @@ it('rejects invalid report index filters', function () {
 
     $this->actingAs($admin)->get('/reports?status=BOGUS')->assertSessionHasErrors('status');
     $this->actingAs($admin)->get('/reports?category_id=9999')->assertSessionHasErrors('category_id');
-    $this->actingAs($admin)->get('/reports?search=' . str_repeat('a', 101))->assertSessionHasErrors('search');
+    $this->actingAs($admin)->get('/reports?search='.str_repeat('a', 101))->assertSessionHasErrors('search');
 });
 
 it('filters reports by status search and category', function () {
@@ -215,7 +215,7 @@ it('protects CSV export from formula injection', function () {
     $content = $this->actingAs($admin)->get('/reports/export/csv')->streamedContent();
 
     expect($content)->toContain("'=SUM(A1:A9)");
-    expect($content)->not->toContain(",=SUM");
+    expect($content)->not->toContain(',=SUM');
 });
 
 it('applies filters to CSV export', function () {

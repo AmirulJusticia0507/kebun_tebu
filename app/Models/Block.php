@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Block extends Model
 {
@@ -29,12 +31,14 @@ class Block extends Model
         ];
     }
 
-    public function pic()
+    /** @return BelongsTo<User, $this> */
+    public function pic(): BelongsTo
     {
         return $this->belongsTo(User::class, 'pic_user_id');
     }
 
-    public function reports()
+    /** @return HasMany<Report, $this> */
+    public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
     }

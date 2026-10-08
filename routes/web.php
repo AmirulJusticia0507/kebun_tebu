@@ -4,10 +4,12 @@ use App\Http\Controllers\Admin\BlockController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportStatusController;
-use App\Http\Controllers\PushSubscriptionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -17,7 +19,7 @@ Route::get('/', function () {
     return Auth::check()
         ? redirect()->route('map')
         : Inertia::render('Welcome', [
-            'canLogin'    => Route::has('login'),
+            'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
         ]);
 });
@@ -28,6 +30,11 @@ Route::get('/privacy-policy', function () {
         'user' => Auth::user(),
     ]);
 })->name('privacy.policy');
+
+// Health check ringkas untuk monitoring eksternal (hanya status, tanpa detail).
+Route::get('/healthz', [HealthCheckController::class, 'status'])
+    ->middleware('throttle:60,1')
+    ->name('health.status');
 
 // ─── Authenticated routes ─────────────────────────────────────────────────────
 Route::middleware(['auth'])->group(function () {
@@ -40,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
         if (Auth::user()?->role === 'admin') {
             return app(DashboardController::class)->index();
         }
+
         return redirect()->route('map');
     })->name('dashboard');
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->middleware('role:admin')->name('admin.dashboard');
@@ -54,9 +62,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
 
     // Notification center
-    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
-    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::get('/push/key', [PushSubscriptionController::class, 'key'])->name('push.key');
     Route::post('/push/subscriptions', [PushSubscriptionController::class, 'store'])->name('push.store');
     Route::delete('/push/subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.destroy');
@@ -66,6 +74,9 @@ Route::middleware(['auth'])->group(function () {
 
     // ─── Admin-only management routes ──────────────────────────────────────────
     Route::middleware('role:admin')->prefix('dashboard')->name('admin.')->group(function () {
+
+        // Detail health check sistem (database, storage, disk, scheduler, queue)
+        Route::get('/health', [HealthCheckController::class, 'show'])->name('health');
 
         // Manajemen Pengguna / Petugas
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -91,4 +102,4 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/blocks/geojson', [BlockController::class, 'geojson'])->name('blocks.geojson');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
