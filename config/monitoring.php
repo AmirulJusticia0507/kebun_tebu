@@ -8,8 +8,10 @@ return [
     'alert_mail' => env('MONITORING_ALERT_MAIL'),
 
     // Batas minimum ruang kosong dalam MB.
-    'disk_min_free_mb' => (int) env('MONITORING_DISK_MIN_MB', 512),
-    'storage_min_free_mb' => (int) env('MONITORING_STORAGE_MIN_MB', 512),
+    // Vercel exposes a small ephemeral /tmp volume; writability is still probed,
+    // but host-style free-space thresholds do not apply to serverless functions.
+    'disk_min_free_mb' => (int) env('MONITORING_DISK_MIN_MB', env('VERCEL') ? 0 : 512),
+    'storage_min_free_mb' => (int) env('MONITORING_STORAGE_MIN_MB', env('VERCEL') ? 0 : 512),
 
     // Heartbeat scheduler dianggap basi setelah X menit.
     'scheduler_max_age_minutes' => (int) env('MONITORING_SCHEDULER_MAX_AGE', 5),
