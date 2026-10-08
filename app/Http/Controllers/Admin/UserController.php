@@ -78,6 +78,12 @@ class UserController extends Controller
             'phone_number' => 'nullable|string|max:20',
         ]);
 
+        if ($user->role === 'admin'
+            && $validated['role'] !== 'admin'
+            && User::where('role', 'admin')->count() === 1) {
+            return back()->with('error', 'Admin terakhir tidak dapat diubah menjadi petugas.');
+        }
+
         $user->update($validated);
         $user->syncRoles([$validated['role']]);
 
@@ -99,6 +105,10 @@ class UserController extends Controller
     {
         if ($user->id === Auth::id()) {
             return back()->with('error', 'Tidak dapat menghapus akun sendiri.');
+        }
+
+        if ($user->role === 'admin' && User::where('role', 'admin')->count() === 1) {
+            return back()->with('error', 'Admin terakhir tidak dapat dihapus.');
         }
 
         $user->delete();
