@@ -104,6 +104,9 @@ class HealthMonitor
     public function schedulerCheck(): array
     {
         $file = (string) config('monitoring.heartbeat_file');
+        if ($file === '') {
+            return $this->pass('scheduler', 'Check scheduler dilewati (MONITORING_HEARTBEAT_FILE kosong; tidak ada cron).');
+        }
         if (! is_file($file)) {
             return $this->fail('scheduler', 'Heartbeat scheduler belum ada; pastikan cron menjalankan php artisan schedule:run setiap menit.');
         }

@@ -8,7 +8,7 @@ define('LARAVEL_START', microtime(true));
 $root = dirname(__DIR__);
 $tmp = '/tmp/kebun-tebu';
 
-foreach (['framework/cache', 'framework/sessions', 'framework/views', 'logs'] as $directory) {
+foreach (['app', 'framework/cache', 'framework/sessions', 'framework/views', 'logs'] as $directory) {
     if (! is_dir("{$tmp}/{$directory}")) {
         mkdir("{$tmp}/{$directory}", 0777, true);
     }
@@ -31,9 +31,9 @@ if (($_SERVER['REQUEST_URI'] ?? '') === '/__diag__') {
     exit;
 }
 
-require $root . '/vendor/autoload.php';
+require $root.'/vendor/autoload.php';
 
-$app = require_once $root . '/bootstrap/app.php';
+$app = require_once $root.'/bootstrap/app.php';
 $app->useStoragePath($tmp);
 
 $kernel = $app->make(Kernel::class);
@@ -51,7 +51,7 @@ if (($_SERVER['REQUEST_URI'] ?? '') === '/__diag__') {
 
 try {
     $response = $kernel->handle($request = Request::capture());
-} catch (\Throwable $e) {
+} catch (Throwable $e) {
     file_put_contents("{$tmp}/logs/fatal.log", get_class($e).': '.$e->getMessage()."\n".$e->getTraceAsString());
     fwrite(STDERR, 'FATAL-OUTSIDE-HANDLER: '.get_class($e).': '.$e->getMessage()."\n");
     throw $e;

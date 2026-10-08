@@ -25,6 +25,7 @@ return [
     // Cooldown alert serupa (menit) supaya tidak spam.
     'alert_cooldown_minutes' => (int) env('MONITORING_ALERT_COOLDOWN', 30),
 
-    // Heartbeat scheduler.
-    'heartbeat_file' => storage_path('framework/schedule-heartbeat.json'),
+    // Heartbeat scheduler. Set MONITORING_HEARTBEAT_FILE="" di serverless
+    // (Vercel/Lambda) karena cron artisan tidak berjalan — check dilewati.
+    'heartbeat_file' => env('MONITORING_HEARTBEAT_FILE', storage_path('framework/schedule-heartbeat.json')),
 ];
