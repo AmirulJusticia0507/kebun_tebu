@@ -10,6 +10,8 @@ const props = defineProps({
 });
 
 const unreadCount = ref(0);
+const notifications = ref([]);
+const showNotifications = ref(false);
 const isOffline = ref(typeof window !== 'undefined' ? !navigator.onLine : false);
 const isDark = ref(true);
 const pushEnabled = ref(false);
@@ -53,6 +55,7 @@ const fetchUnreadCount = async () => {
         try {
             const res = await axios.get('/notifications');
             unreadCount.value = res.data.unread_count || 0;
+            notifications.value = res.data.notifications || [];
         } catch (e) {
             // Ignore error if unauthenticated
         }
@@ -84,7 +87,19 @@ const enablePush = async () => {
 
 const refreshNotifications = async () => {
     await fetchUnreadCount();
+    showNotifications.value = !showNotifications.value;
     await enablePush();
+};
+
+const openNotification = async (notification) => {
+    if (!notification.read_at) await axios.post(`/notifications/${notification.id}/read`);
+    window.location.href = notification.data?.url || '/reports';
+};
+
+const markAllNotificationsRead = async () => {
+    await axios.post('/notifications/read-all');
+    notifications.value = notifications.value.map((notification) => ({ ...notification, read_at: notification.read_at || new Date().toISOString() }));
+    unreadCount.value = 0;
 };
 
 onMounted(() => {
@@ -213,6 +228,19 @@ const confirmLogout = () => {
                                     {{ unreadCount }}
                                 </span>
                             </button>
+                            <div v-if="showNotifications" class="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+                                <div class="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+                                    <span class="text-sm font-bold text-slate-100">Notifikasi</span>
+                                    <button v-if="unreadCount" @click="markAllNotificationsRead" class="text-xs text-emerald-400 hover:text-emerald-300">Tandai semua dibaca</button>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto">
+                                    <button v-for="notification in notifications" :key="notification.id" @click="openNotification(notification)" class="block w-full border-b border-slate-800 px-4 py-3 text-left hover:bg-slate-800/70" :class="notification.read_at ? 'opacity-70' : 'bg-emerald-950/20'">
+                                        <span class="block text-sm font-semibold text-slate-100">{{ notification.data?.title || 'Notifikasi' }}</span>
+                                        <span class="mt-1 block text-xs text-slate-400">{{ notification.data?.message }}</span>
+                                    </button>
+                                    <p v-if="!notifications.length" class="px-4 py-8 text-center text-sm text-slate-500">Belum ada notifikasi.</p>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- User Profile Dropdown & SweetAlert Logout -->
