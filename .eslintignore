@@ -1,0 +1,7 @@
+node_modules/
+vendor/
+public/build/
+public/sw.js
+public/uploads/
+build/
+storage/
