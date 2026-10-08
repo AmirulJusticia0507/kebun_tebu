@@ -8,11 +8,20 @@ use App\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule;
 
 class MapController extends Controller
 {
     public function index(Request $request)
     {
+        $filters = $request->validate([
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'block_id' => ['nullable', 'integer', 'exists:blocks,id'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'status' => ['nullable', Rule::in(['OPEN', 'ON_PROGRESS', 'CLOSED'])],
+        ]);
+
         $query = Report::with(['user', 'category', 'block'])
             ->whereNotNull('latitude')
             ->whereNotNull('longitude');
@@ -46,7 +55,7 @@ class MapController extends Controller
             'reports'    => $reports,
             'categories' => $categories,
             'blocks'     => $blocks,
-            'filters'    => $request->only(['category_id', 'block_id', 'date_from', 'date_to', 'status']),
+            'filters'    => $filters,
         ]);
     }
 }

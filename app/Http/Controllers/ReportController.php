@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ReportController extends Controller
@@ -24,6 +25,11 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $filters = $request->validate([
+            'status' => ['nullable', Rule::in(['OPEN', 'ON_PROGRESS', 'CLOSED'])],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
 
         $query = Report::with(['category', 'block', 'user'])
             ->orderByDesc('reported_at');
@@ -54,7 +60,7 @@ class ReportController extends Controller
             'user'       => $user,
             'reports'    => $reports,
             'categories' => Category::select('id', 'name', 'color_code')->get(),
-            'filters'    => $request->only(['status', 'category_id', 'search']),
+            'filters'    => $filters,
         ]);
     }
 

@@ -23,7 +23,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name'                => 'required|string|max:50|unique:categories,name',
             'icon_marker'         => 'nullable|string|max:100',
-            'color_code'          => 'required|string|max:10',
+            'color_code'          => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'sla_hours'           => 'nullable|integer|min:1',
             'checklist_template'  => 'nullable|array',
         ]);
@@ -38,7 +38,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name'                => "required|string|max:50|unique:categories,name,{$category->id}",
             'icon_marker'         => 'nullable|string|max:100',
-            'color_code'          => 'required|string|max:10',
+            'color_code'          => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'sla_hours'           => 'nullable|integer|min:1',
             'checklist_template'  => 'nullable|array',
         ]);

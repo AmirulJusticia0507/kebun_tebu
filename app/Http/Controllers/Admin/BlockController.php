@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule;
 
 class BlockController extends Controller
 {
@@ -25,8 +26,10 @@ class BlockController extends Controller
             'code'        => 'required|string|max:20|unique:blocks,code',
             'name'        => 'required|string|max:100',
             'hectare'     => 'nullable|numeric|min:0',
-            'pic_user_id' => 'nullable|exists:users,id',
+            'pic_user_id' => ['nullable', Rule::exists('users', 'id')->whereNull('deleted_at')->where('role', 'field_officer')],
             'polygon'     => 'nullable|array',
+            'polygon.type' => ['required_with:polygon', Rule::in(['Polygon', 'MultiPolygon'])],
+            'polygon.coordinates' => 'required_with:polygon|array',
             'is_active'   => 'boolean',
         ]);
 
@@ -41,8 +44,10 @@ class BlockController extends Controller
             'code'        => "required|string|max:20|unique:blocks,code,{$block->id}",
             'name'        => 'required|string|max:100',
             'hectare'     => 'nullable|numeric|min:0',
-            'pic_user_id' => 'nullable|exists:users,id',
+            'pic_user_id' => ['nullable', Rule::exists('users', 'id')->whereNull('deleted_at')->where('role', 'field_officer')],
             'polygon'     => 'nullable|array',
+            'polygon.type' => ['required_with:polygon', Rule::in(['Polygon', 'MultiPolygon'])],
+            'polygon.coordinates' => 'required_with:polygon|array',
             'is_active'   => 'boolean',
         ]);
 
