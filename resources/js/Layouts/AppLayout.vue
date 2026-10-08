@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
-import { Head, Link } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import Swal from "sweetalert2";
 import CookieConsent from "@/Components/CookieConsent.vue";
 
@@ -12,11 +12,13 @@ const props = defineProps({
 const unreadCount = ref(0);
 const notifications = ref([]);
 const showNotifications = ref(false);
+const mobileMenuOpen = ref(false);
 const isOffline = ref(
   typeof window !== "undefined" ? !navigator.onLine : false,
 );
 const isDark = ref(true);
 const pushEnabled = ref(false);
+let removeNavigationListener;
 
 const updateOnlineStatus = () => {
   isOffline.value = typeof window !== "undefined" ? !navigator.onLine : false;
@@ -136,6 +138,11 @@ onMounted(() => {
   if (typeof window !== "undefined") {
     window.addEventListener("online", updateOnlineStatus);
     window.addEventListener("offline", updateOnlineStatus);
+    removeNavigationListener = router.on("finish", () => {
+      mobileMenuOpen.value = false;
+      showNotifications.value = false;
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
   }
 });
 
@@ -143,6 +150,7 @@ onUnmounted(() => {
   if (typeof window !== "undefined") {
     window.removeEventListener("online", updateOnlineStatus);
     window.removeEventListener("offline", updateOnlineStatus);
+    removeNavigationListener?.();
   }
 });
 
@@ -211,7 +219,10 @@ const confirmLogout = () => {
     </div>
 
     <!-- Main Navigation Bar -->
-    <header v-if="user" class="glass-nav border-b border-slate-800/80">
+    <header
+      v-if="user"
+      class="glass-nav relative z-50 border-b border-slate-800/80"
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <!-- Brand & Links -->
@@ -311,7 +322,7 @@ const confirmLogout = () => {
             <!-- Adaptive Dark / Light Mode Toggle Button -->
             <button
               @click="toggleTheme"
-              class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all duration-200 flex items-center justify-center border border-slate-700/60 bg-slate-900/60 shadow-sm"
+              class="hidden md:flex p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all duration-200 items-center justify-center border border-slate-700/60 bg-slate-900/60 shadow-sm"
               :title="
                 isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'
               "
@@ -423,7 +434,7 @@ const confirmLogout = () => {
             </div>
 
             <!-- User Profile Dropdown & SweetAlert Logout -->
-            <div class="relative flex items-center gap-3">
+            <div class="relative hidden md:flex items-center gap-3">
               <div class="hidden sm:flex flex-col items-end">
                 <span class="text-sm font-bold text-slate-200">{{
                   user.name
@@ -460,120 +471,135 @@ const confirmLogout = () => {
                 <span class="hidden sm:inline">Keluar</span>
               </button>
             </div>
+
+            <button
+              type="button"
+              class="md:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/60 bg-slate-900/60 text-slate-200 transition hover:border-emerald-500/50 hover:text-emerald-400"
+              :aria-expanded="mobileMenuOpen"
+              aria-controls="mobile-navigation"
+              :aria-label="mobileMenuOpen ? 'Tutup menu' : 'Buka menu'"
+              @click="mobileMenuOpen = !mobileMenuOpen"
+            >
+              <svg
+                v-if="!mobileMenuOpen"
+                class="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+              <svg
+                v-else
+                class="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
-    </header>
 
-    <!-- Mobile Bottom Nav -->
-    <div
-      v-if="user"
-      class="md:hidden glass-nav border-t border-slate-800 fixed bottom-0 left-0 right-0 z-50 py-1.5 px-4"
-    >
-      <div class="flex justify-around items-center">
+      <div
+        v-show="mobileMenuOpen"
+        id="mobile-navigation"
+        class="md:hidden border-t border-slate-800 bg-slate-950/95 px-4 py-4 shadow-2xl backdrop-blur-xl"
+      >
+        <nav class="mx-auto grid max-w-7xl gap-1" aria-label="Navigasi mobile">
         <Link
           href="/map"
-          class="flex flex-col items-center gap-1 p-2 rounded-xl transition-colors"
+          class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
           :class="
             $page.url.startsWith('/map')
-              ? 'text-emerald-400 font-bold'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-emerald-500/10 text-emerald-400'
+              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
           "
         >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-            />
-          </svg>
-          <span class="text-[10px]">Peta</span>
+          Peta Monitoring
         </Link>
         <Link
           href="/reports/create"
-          class="flex flex-col items-center gap-1 p-2 rounded-xl transition-colors"
+          class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
           :class="
             $page.url.startsWith('/reports/create')
-              ? 'text-emerald-400 font-bold'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-emerald-500/10 text-emerald-400'
+              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
           "
         >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span class="text-[10px]">Lapor</span>
+          Buat Laporan
+        </Link>
+        <Link
+          href="/reports"
+          class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
+          :class="
+            $page.url === '/reports' ||
+            ($page.url.startsWith('/reports/') &&
+              !$page.url.startsWith('/reports/create'))
+              ? 'bg-emerald-500/10 text-emerald-400'
+              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+          "
+        >
+          Riwayat Laporan
         </Link>
         <Link
           v-if="user.role === 'admin'"
           href="/dashboard"
-          class="flex flex-col items-center gap-1 p-2 rounded-xl transition-colors"
+          class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
           :class="
             $page.url.startsWith('/dashboard') &&
             !$page.url.startsWith('/dashboard/users')
-              ? 'text-emerald-400 font-bold'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-emerald-500/10 text-emerald-400'
+              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
           "
         >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-            />
-          </svg>
-          <span class="text-[10px]">Dashboard</span>
+          Dashboard
         </Link>
         <Link
           v-if="user.role === 'admin'"
           href="/dashboard/users"
-          class="flex flex-col items-center gap-1 p-2 rounded-xl transition-colors"
+          class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
           :class="
             $page.url.startsWith('/dashboard/users')
-              ? 'text-emerald-400 font-bold'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-emerald-500/10 text-emerald-400'
+              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
           "
         >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-            />
-          </svg>
-          <span class="text-[10px]">Users</span>
+          Kelola Pengguna
         </Link>
+        <div class="mt-3 grid grid-cols-2 gap-2 border-t border-slate-800 pt-3">
+          <button
+            type="button"
+            class="rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-slate-300 hover:border-emerald-500/50 hover:text-white"
+            @click="toggleTheme"
+          >
+            {{ isDark ? "Mode Terang" : "Mode Gelap" }}
+          </button>
+          <button
+            type="button"
+            class="rounded-xl border border-rose-900/70 px-4 py-3 text-sm font-semibold text-rose-400 hover:bg-rose-950/50"
+            @click="confirmLogout"
+          >
+            Keluar
+          </button>
+        </div>
+        </nav>
       </div>
-    </div>
+    </header>
 
-    <main class="pb-24 md:pb-6">
+    <main class="pb-6">
       <slot />
     </main>
   </div>
