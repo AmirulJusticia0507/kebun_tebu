@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Report;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -24,8 +25,30 @@ class CheckSlaEscalation extends Command
         Log::info("SLA Escalation Check: {$count} reports near or past SLA deadline.");
 
         foreach ($overdueReports as $report) {
-            // Log warning for SLA escalation
             Log::warning("SLA Warning: Report #{$report->id} ('{$report->title}') deadline is {$report->sla_deadline}");
+
+            if (Notification::where('type', 'report.sla_warning')
+                ->where('data->report_id', $report->id)
+                ->exists()) {
+                continue;
+            }
+
+            User::where('role', 'admin')->each(function (User $admin) use ($report) {
+                Notification::create([
+                    'type' => 'report.sla_warning',
+                    'notifiable_type' => User::class,
+                    'notifiable_id' => $admin->id,
+                    'data' => [
+                        'title' => 'Peringatan SLA',
+                        'message' => "Laporan {$report->title} mendekati atau melewati SLA.",
+                        'report_id' => $report->id,
+                        'sla_deadline' => $report->sla_deadline?->toIso8601String(),
+                        'url' => route('reports.show', $report),
+                    ],
+                    'channel' => 'database',
+                    'sent_at' => now(),
+                ]);
+            });
         }
 
         return self::SUCCESS;
