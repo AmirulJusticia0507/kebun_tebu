@@ -261,7 +261,7 @@ class ReportController extends Controller
 
     public function exportGeoJson(Request $request)
     {
-        $reports = Report::with(['category', 'block', 'user'])
+        $reports = $this->exportQuery($request)
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->get();
@@ -290,7 +290,7 @@ class ReportController extends Controller
 
     public function exportCsv(Request $request)
     {
-        $reports = Report::with(['category', 'block', 'user'])->get();
+        $reports = $this->exportQuery($request)->get();
 
         $filename = 'laporan_kebun_tebu_' . date('Y-m-d_H-i-s') . '.csv';
 
@@ -304,7 +304,11 @@ class ReportController extends Controller
             fputcsv($file, ['ID', 'Judul', 'Kategori', 'Blok', 'Pelapor', 'Status', 'Latitude', 'Longitude', 'Waktu Laporan']);
 
             foreach ($reports as $r) {
-                fputcsv($file, [
+                $safe = fn ($value) => is_string($value) && preg_match('/^[=+\-@]/', $value)
+                    ? "'{$value}"
+                    : $value;
+
+                fputcsv($file, array_map($safe, [
                     $r->id,
                     $r->title,
                     $r->category?->name ?? '-',
@@ -314,11 +318,30 @@ class ReportController extends Controller
                     $r->latitude,
                     $r->longitude,
                     $r->reported_at ? $r->reported_at->format('Y-m-d H:i:s') : '-',
-                ]);
+                ]));
             }
             fclose($file);
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    private function exportQuery(Request $request)
+    {
+        $filters = $request->validate([
+            'status' => ['nullable', Rule::in(['OPEN', 'ON_PROGRESS', 'CLOSED'])],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'block_id' => ['nullable', 'integer', 'exists:blocks,id'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+        ]);
+
+        return Report::with(['category', 'block', 'user'])
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->when($filters['category_id'] ?? null, fn ($query, $category) => $query->where('category_id', $category))
+            ->when($filters['block_id'] ?? null, fn ($query, $block) => $query->where('block_id', $block))
+            ->when($filters['date_from'] ?? null, fn ($query, $date) => $query->whereDate('reported_at', '>=', $date))
+            ->when($filters['date_to'] ?? null, fn ($query, $date) => $query->whereDate('reported_at', '<=', $date))
+            ->orderByDesc('reported_at');
     }
 }
