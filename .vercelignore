@@ -4,6 +4,7 @@
 .pest.php
 .phpunit.cache
 .vercel
+bootstrap/cache
 node_modules
 phpunit.xml
 public/sw.js

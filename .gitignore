@@ -20,6 +20,7 @@
 .vscode
 .DS_Store
 /build
+/bootstrap/cache/*.php
 
 .vercel
 .env*
