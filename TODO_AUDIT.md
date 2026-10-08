@@ -11,7 +11,7 @@ Dasar audit: kode, route, konfigurasi, build produksi, dan test yang tersedia di
 | Phase 3: Core Controllers | Selesai dengan catatan | Controller auth, dashboard, map, report, status report, notification, dan admin tersedia serta route terdaftar. Masih ada gap otorisasi dan konsistensi endpoint. |
 | Phase 4: QA Test Plan | Belum selesai | Baru ada satu file test awal; test runner belum dapat berjalan dan beberapa test tidak sesuai implementasi. |
 | Phase 4b: PWA Offline-First | Implementasi selesai, menunggu QA perangkat | Form, IndexedDB (termasuk foto), retry saat online, idempotency, cache form, manifest, dan service worker sudah tersambung. |
-| Phase 5: Notifications | Sebagian kecil | Notification center dan command terjadwal tersedia; WhatsApp dan Web Push belum diimplementasikan, SLA baru menulis log. |
+| Phase 5: Notifications | Implementasi selesai, menunggu konfigurasi/QA | Database notification, WhatsApp, Web Push, SLA/digest, queue retry, dan notification center sudah tersedia. |
 | Phase 6: Security, Observability & Launch Prep | Sebagian | Auth, role middleware, policy, audit log, validasi upload, dan health endpoint tersedia; hardening, monitoring, CI, dan deployment belum siap. |
 
 ## Detail per fase
@@ -108,7 +108,7 @@ Validasi yang masih diperlukan:
 - [ ] Uji offline reload, cache form, GPS, foto, kehilangan koneksi saat submit, dan reconnect.
 - [ ] Verifikasi installability serta perilaku service worker di perangkat Android target.
 
-### [~] Phase 5 — Notifications
+### [x] Phase 5 — Notifications (menunggu konfigurasi provider dan QA perangkat)
 
 Yang sudah ada:
 
@@ -116,25 +116,18 @@ Yang sudah ada:
 - Scheduler untuk SLA check, auto-close, dan daily digest.
 - Deadline SLA dihitung ketika laporan dibuat.
 - Command SLA dan digest sudah dapat menghitung data dan menulis log.
+- Notification database dikirim untuk laporan baru, perubahan status, SLA, dan daily digest.
+- Notification center menyediakan daftar, buka detail, serta tandai satu/semua dibaca.
+- Integrasi WhatsApp Fonnte memiliki timeout, retry, logging, dan pencatatan delivery.
+- Web Push memiliki subscription per pengguna, VAPID, delivery, dan pembersihan subscription kedaluwarsa.
+- Pengiriman eksternal berjalan melalui queue dengan retry/backoff dan failed jobs.
+- Warning SLA dan daily digest dilindungi dari pengiriman berulang.
 
-Yang belum selesai:
+Validasi yang masih diperlukan:
 
-- Belum ada class Laravel Notification atau event/listener untuk perubahan status/assignment.
-- SLA escalation hanya menulis log, belum membuat notifikasi database atau mengirim pesan.
-- Daily digest hanya menulis log.
-- Belum ada integrasi WhatsApp/Fonnte meskipun env placeholder tersedia.
-- Belum ada Web Push, VAPID subscription, service worker push handler, atau dependency backend push.
-- Belum ada perlindungan agar warning SLA tidak terkirim berulang kali.
-
-TODO:
-
-- [ ] Tentukan event pemicu dan penerima setiap jenis notifikasi.
-- [ ] Implementasikan notifikasi database terlebih dahulu sebagai jalur dasar.
-- [ ] Hubungkan status report, SLA warning, dan daily digest ke notification pipeline.
-- [ ] Tambahkan queue, retry/backoff, delivery status, dan idempotency.
-- [ ] Implementasikan provider WhatsApp beserta timeout, error handling, dan template pesan.
-- [ ] Implementasikan subscription dan delivery Web Push.
-- [ ] Tambahkan preferensi/notifikasi opt-in bila dibutuhkan.
+- [ ] Isi kredensial Fonnte dan uji nomor WhatsApp nyata.
+- [ ] Jalankan `php artisan webpush:generate-keys`, isi VAPID keys, lalu uji browser/perangkat target.
+- [ ] Jalankan queue worker dan scheduler secara persisten di production.
 - [ ] Test command scheduler dan kegagalan provider.
 
 ### [~] Phase 6 — Security, Observability & Launch Prep
