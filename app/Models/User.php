@@ -49,6 +49,11 @@ class User extends Authenticatable
         return $this->hasMany(Block::class, 'pic_user_id');
     }
 
+    public function pushSubscriptions()
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

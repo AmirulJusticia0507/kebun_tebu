@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportStatusController;
+use App\Http\Controllers\PushSubscriptionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -56,6 +57,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::get('/push/key', [PushSubscriptionController::class, 'key'])->name('push.key');
+    Route::post('/push/subscriptions', [PushSubscriptionController::class, 'store'])->name('push.store');
+    Route::delete('/push/subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.destroy');
 
     // Update status laporan (admin)
     Route::patch('/reports/{report}/status', [ReportStatusController::class, 'update'])->name('reports.status');

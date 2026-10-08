@@ -6,6 +6,7 @@ use App\Models\Report;
 use App\Models\Notification;
 use App\Models\User;
 use App\Services\WhatsAppService;
+use App\Services\WebPushService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -55,6 +56,13 @@ class GenerateDailyDigest extends Command
                 'reports.daily_digest',
                 $summary,
                 ['new_count' => $newCount, 'closed_count' => $closedCount, 'open_count' => $totalOpen],
+            );
+            app(WebPushService::class)->send(
+                $admin,
+                'reports.daily_digest',
+                'Ringkasan laporan harian',
+                $summary,
+                ['url' => route('dashboard')],
             );
         });
 

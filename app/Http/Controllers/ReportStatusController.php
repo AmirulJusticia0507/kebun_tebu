@@ -6,6 +6,7 @@ use App\Models\Report;
 use App\Models\Notification;
 use App\Models\User;
 use App\Services\WhatsAppService;
+use App\Services\WebPushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -53,6 +54,13 @@ class ReportStatusController extends Controller
             'report.status_changed',
             "Status laporan {$report->title} berubah menjadi {$validated['status']}.",
             ['report_id' => $report->id, 'status' => $validated['status']],
+        );
+        app(WebPushService::class)->send(
+            $report->user,
+            'report.status_changed',
+            'Status laporan berubah',
+            "{$report->title}: {$validated['status']}",
+            ['report_id' => $report->id, 'url' => route('reports.show', $report)],
         );
 
         return back()->with('success', 'Status laporan berhasil diperbarui.');

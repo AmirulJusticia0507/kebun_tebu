@@ -6,6 +6,7 @@ use App\Models\Report;
 use App\Models\Notification;
 use App\Models\User;
 use App\Services\WhatsAppService;
+use App\Services\WebPushService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -55,6 +56,13 @@ class CheckSlaEscalation extends Command
                     'report.sla_warning',
                     "Peringatan SLA: {$report->title} mendekati atau melewati batas waktu.",
                     ['report_id' => $report->id],
+                );
+                app(WebPushService::class)->send(
+                    $admin,
+                    'report.sla_warning',
+                    'Peringatan SLA',
+                    "{$report->title} mendekati atau melewati batas waktu.",
+                    ['report_id' => $report->id, 'url' => route('reports.show', $report)],
                 );
             });
         }

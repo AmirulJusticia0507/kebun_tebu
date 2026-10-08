@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\WhatsAppService;
+use App\Services\WebPushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -133,6 +134,13 @@ class ReportController extends Controller
                 'report.created',
                 "Laporan baru: {$report->title}",
                 ['report_id' => $report->id],
+            );
+            app(WebPushService::class)->send(
+                $admin,
+                'report.created',
+                'Laporan baru',
+                $report->title,
+                ['report_id' => $report->id, 'url' => route('reports.show', $report)],
             );
         });
 

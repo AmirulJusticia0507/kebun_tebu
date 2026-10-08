@@ -12,6 +12,7 @@ const props = defineProps({
 const unreadCount = ref(0);
 const isOffline = ref(typeof window !== 'undefined' ? !navigator.onLine : false);
 const isDark = ref(true);
+const pushEnabled = ref(false);
 
 const updateOnlineStatus = () => {
     isOffline.value = typeof window !== 'undefined' ? !navigator.onLine : false;
@@ -58,9 +59,40 @@ const fetchUnreadCount = async () => {
     }
 };
 
+const enablePush = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission === 'denied') return;
+
+    const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+    if (permission !== 'granted') return;
+
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+        const { data } = await axios.get('/push/key');
+        if (!data.public_key) return;
+        const padding = '='.repeat((4 - data.public_key.length % 4) % 4);
+        const base64 = (data.public_key + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const applicationServerKey = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+        subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
+    }
+
+    const payload = subscription.toJSON();
+    payload.contentEncoding = (PushManager.supportedContentEncodings || ['aes128gcm'])[0];
+    await axios.post('/push/subscriptions', payload);
+    pushEnabled.value = true;
+};
+
+const refreshNotifications = async () => {
+    await fetchUnreadCount();
+    await enablePush();
+};
+
 onMounted(() => {
     initTheme();
     fetchUnreadCount();
+    navigator.serviceWorker?.ready
+        .then((registration) => registration.pushManager?.getSubscription())
+        .then((subscription) => { pushEnabled.value = Boolean(subscription); });
     if (typeof window !== 'undefined') {
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
@@ -173,7 +205,7 @@ const confirmLogout = () => {
 
                         <!-- Notification Badge -->
                         <div class="relative">
-                            <button @click="fetchUnreadCount" class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors border border-slate-700/60 bg-slate-900/60 relative">
+                            <button @click="refreshNotifications" :title="pushEnabled ? 'Notifikasi aktif' : 'Aktifkan notifikasi'" class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors border border-slate-700/60 bg-slate-900/60 relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                 </svg>
