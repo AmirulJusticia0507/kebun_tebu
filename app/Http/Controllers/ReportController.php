@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ReportController extends Controller
@@ -74,7 +76,7 @@ class ReportController extends Controller
             'description'       => 'nullable|string',
             'latitude'          => 'required|numeric|between:-90,90',
             'longitude'         => 'required|numeric|between:-180,180',
-            'photo'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photo'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120|dimensions:max_width=8000,max_height=8000',
             'checklist_answers' => 'nullable|array',
         ]);
 
@@ -90,8 +92,7 @@ class ReportController extends Controller
 
         $photoUrl = null;
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('reports/photos', 'public');
-            $photoUrl = Storage::url($path);
+            $photoUrl = $this->storeSanitizedPhoto($request->file('photo'));
         }
 
         $category = Category::find($validated['category_id']);
@@ -146,6 +147,34 @@ class ReportController extends Controller
         });
 
         return redirect()->route('map')->with('success', 'Laporan berhasil dikirim!');
+    }
+
+    private function storeSanitizedPhoto(\Illuminate\Http\UploadedFile $photo): string
+    {
+        $image = @imagecreatefromstring(file_get_contents($photo->getRealPath()));
+        if (! $image) {
+            throw ValidationException::withMessages(['photo' => 'Foto tidak dapat diproses.']);
+        }
+
+        if ($photo->getMimeType() === 'image/jpeg' && function_exists('exif_read_data')) {
+            $orientation = @exif_read_data($photo->getRealPath())['Orientation'] ?? 1;
+            $image = match ($orientation) {
+                3 => imagerotate($image, 180, 0),
+                6 => imagerotate($image, -90, 0),
+                8 => imagerotate($image, 90, 0),
+                default => $image,
+            };
+        }
+
+        ob_start();
+        imagewebp($image, null, 82);
+        $contents = ob_get_clean();
+        imagedestroy($image);
+
+        $path = 'reports/photos/' . Str::uuid() . '.webp';
+        Storage::disk('public')->put($path, $contents);
+
+        return Storage::url($path);
     }
 
     public function show(Report $report)
