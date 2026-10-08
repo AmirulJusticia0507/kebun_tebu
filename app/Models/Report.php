@@ -27,6 +27,7 @@ class Report extends Model
         'admin_note',
         'handled_by',
         'reported_at',
+        'resolved_at',
         'voice_note_url',
         'checklist_answers',
         'sla_deadline',
