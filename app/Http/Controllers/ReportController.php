@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Block;
 use App\Models\Category;
+use App\Models\Notification;
 use App\Models\Report;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -91,7 +93,7 @@ class ReportController extends Controller
 
         $category = Category::find($validated['category_id']);
 
-        Report::create([
+        $report = Report::create([
             'user_id'           => Auth::id(),
             'client_uuid'       => $validated['client_uuid'] ?? null,
             'category_id'       => $validated['category_id'],
@@ -109,6 +111,22 @@ class ReportController extends Controller
                 ? now()->addHours($category->sla_hours)
                 : null,
         ]);
+
+        User::where('role', 'admin')->each(function (User $admin) use ($report) {
+            Notification::create([
+                'type' => 'report.created',
+                'notifiable_type' => User::class,
+                'notifiable_id' => $admin->id,
+                'data' => [
+                    'title' => 'Laporan baru',
+                    'message' => $report->title,
+                    'report_id' => $report->id,
+                    'url' => route('reports.show', $report),
+                ],
+                'channel' => 'database',
+                'sent_at' => now(),
+            ]);
+        });
 
         return redirect()->route('map')->with('success', 'Laporan berhasil dikirim!');
     }

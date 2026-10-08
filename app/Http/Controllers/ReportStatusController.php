@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Report;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -29,6 +31,21 @@ class ReportStatusController extends Controller
         }
 
         $report->update($data);
+
+        Notification::create([
+            'type' => 'report.status_changed',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $report->user_id,
+            'data' => [
+                'title' => 'Status laporan berubah',
+                'message' => "{$report->title}: {$validated['status']}",
+                'report_id' => $report->id,
+                'status' => $validated['status'],
+                'url' => route('reports.show', $report),
+            ],
+            'channel' => 'database',
+            'sent_at' => now(),
+        ]);
 
         return back()->with('success', 'Status laporan berhasil diperbarui.');
     }
