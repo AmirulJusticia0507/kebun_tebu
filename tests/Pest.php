@@ -1,12 +1,15 @@
 <?php
 
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 uses(TestCase::class)->in('Feature', 'Unit');
 
-uses(RefreshDatabase::class)->in('Feature');
+uses(RefreshDatabase::class)->beforeEach(function () {
+    $this->seed(RoleSeeder::class);
+})->in('Feature');
 
 function makeAdmin(array $attributes = []): User
 {

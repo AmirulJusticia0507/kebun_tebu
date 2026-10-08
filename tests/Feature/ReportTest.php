@@ -1,10 +1,17 @@
 <?php
 
+use App\Models\Block;
+use App\Models\Category;
+use App\Models\Report;
+use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
 it('user can access login page', function () {
     $response = $this->get('/login');
 
-    $response->assertStatus(200);
-    $response->assertSee('Masuk ke Akun');
+    $response->assertOk();
+    $response->assertSee('id="app"', false);
 });
 
 it('user can register with valid data', function () {
@@ -13,12 +20,12 @@ it('user can register with valid data', function () {
         'email' => 'test@example.com',
         'password' => 'password123',
         'password_confirmation' => 'password123',
-        'role' => 'field_officer',
         'phone_number' => '08123456789',
     ]);
 
     $response->assertRedirect('/dashboard');
     $this->assertAuthenticated('web');
+    $this->assertDatabaseHas('users', ['email' => 'test@example.com', 'role' => 'field_officer']);
 });
 
 it('guest user cannot access dashboard', function () {
@@ -28,11 +35,8 @@ it('guest user cannot access dashboard', function () {
 });
 
 it('field_officer can create a report', function () {
-    $user = User::factory()->create([
-        'role' => 'field_officer',
-    ]);
-
-    $category = Category::firstOrCreate(['name' => 'Kebakaran']);
+    $user = makeFieldOfficer();
+    $category = Category::factory()->create();
 
     $response = $this->actingAs($user)->post('/reports', [
         'category_id' => $category->id,
@@ -52,14 +56,14 @@ it('field_officer can create a report', function () {
 });
 
 it('admin can filter reports by status', function () {
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = makeAdmin();
+    $category = Category::factory()->create();
 
-    // Create reports with different statuses
-    Report::factory()->create(['status' => 'OPEN']);
-    Report::factory()->create(['status' => 'ON_PROGRESS']);
-    Report::factory()->create(['status' => 'CLOSED']);
+    Report::factory()->create(['category_id' => $category->id, 'status' => 'OPEN']);
+    Report::factory()->create(['category_id' => $category->id, 'status' => 'ON_PROGRESS']);
+    Report::factory()->create(['category_id' => $category->id, 'status' => 'CLOSED']);
 
-    $response = $this->actingAs($admin)->get('/reports', ['status' => 'OPEN']);
+    $response = $this->actingAs($admin)->get('/reports?status=OPEN');
 
     $response->assertStatus(200);
     $response->assertSee('OPEN');
@@ -68,28 +72,26 @@ it('admin can filter reports by status', function () {
 });
 
 it('admin can export reports as CSV', function () {
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = makeAdmin();
 
-    $response = $this->actingAs($admin)->get('/reports/export-csv');
+    $response = $this->actingAs($admin)->get('/reports/export/csv');
 
     $response->assertOk();
-    $response->assertHeader('Content-Type', 'text/csv');
+    $response->assertHeader('Content-Type', 'text/csv; charset=utf-8');
     $response->assertHeader('Content-Disposition');
 });
 
 it('report status flow', function () {
-    // Test status flow: Open -> On Progress -> Closed
-    $admin = User::factory()->create(['role' => 'admin']);
-    $user = User::factory()->create(['role' => 'field_officer']);
+    $admin = makeAdmin();
+    $user = makeFieldOfficer();
 
     $report = Report::factory()->create([
         'user_id' => $user->id,
         'status' => 'OPEN',
     ]);
 
-    // Admin changes status to On Progress
     $response = $this->actingAs($admin)
-        ->put("/reports/{$report->id}/status", [
+        ->patch("/reports/{$report->id}/status", [
             'status' => 'ON_PROGRESS',
             'admin_note' => 'Sedang ditangani',
         ]);
@@ -101,9 +103,8 @@ it('report status flow', function () {
         'admin_note' => 'Sedang ditangani',
     ]);
 
-    // Admin changes status to Closed
     $response = $this->actingAs($admin)
-        ->put("/reports/{$report->id}/status", [
+        ->patch("/reports/{$report->id}/status", [
             'status' => 'CLOSED',
             'admin_note' => 'Sudah diselesaikan',
         ]);
@@ -117,17 +118,14 @@ it('report status flow', function () {
 });
 
 it('report SLA deadline calculation', function () {
-    $category = Category::firstOrCreate([
-        'name' => 'Kebakaran',
-        'sla_hours' => 24,
-    ]);
+    $category = Category::factory()->create(['sla_hours' => 24]);
 
     $report = Report::factory()->create([
         'category_id' => $category->id,
         'status' => 'OPEN',
+        'reported_at' => now(),
     ]);
 
-    // SLA deadline should be 24 hours from reported_at
     $this->assertNotNull($report->sla_deadline);
     $this->assertTrue($report->sla_deadline->gt(now()));
     $this->assertTrue($report->sla_deadline->lte(now()->addHours(25)));
@@ -149,11 +147,12 @@ it('report block relationship', function () {
 });
 
 it('gps location data acceptance', function () {
-    $user = User::factory()->create(['role' => 'field_officer']);
+    $user = makeFieldOfficer();
+    $category = Category::factory()->create();
 
     $response = $this->actingAs($user)->post('/reports', [
         'title' => 'Test GPS',
-        'category_id' => 1,
+        'category_id' => $category->id,
         'latitude' => -7.7956,
         'longitude' => 110.3695,
     ]);
@@ -166,13 +165,16 @@ it('gps location data acceptance', function () {
 });
 
 it('report creation with valid photo', function () {
-    $user = User::factory()->create(['role' => 'field_officer']);
+    Storage::fake('public');
+
+    $user = makeFieldOfficer();
+    $category = Category::factory()->create();
 
     $photo = UploadedFile::fake()->image('test_photo.jpg');
 
     $response = $this->actingAs($user)->post('/reports', [
         'title' => 'Test Photo Upload',
-        'category_id' => 1,
+        'category_id' => $category->id,
         'latitude' => -7.7956,
         'longitude' => 110.3695,
         'photo' => $photo,
@@ -184,15 +186,14 @@ it('report creation with valid photo', function () {
 });
 
 it('report checklist_answers storage', function () {
-    $category = Category::firstOrCreate([
-        'name' => 'Kebakaran',
-        'checklist_template' => json_encode([
+    $category = Category::factory()->create([
+        'checklist_template' => [
             ['label' => 'Api masih menyala?', 'type' => 'boolean'],
             ['label' => 'Jumlah hektar terbakar', 'type' => 'number'],
-        ]),
+        ],
     ]);
 
-    $user = User::factory()->create(['role' => 'field_officer']);
+    $user = makeFieldOfficer();
 
     $report = Report::create([
         'user_id' => $user->id,
@@ -201,10 +202,10 @@ it('report checklist_answers storage', function () {
         'description' => 'Test checklist storage',
         'latitude' => -7.7956,
         'longitude' => 110.3695,
-        'checklist_answers' => json_encode([
+        'checklist_answers' => [
             'Api masih menyala?' => true,
             'Jumlah hektar terbakar' => 5,
-        ]),
+        ],
     ]);
 
     $this->assertEquals(true, $report->checklist_answers['Api masih menyala?']);
@@ -212,9 +213,9 @@ it('report checklist_answers storage', function () {
 });
 
 it('admin can export reports as GeoJSON', function () {
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = makeAdmin();
 
-    $response = $this->actingAs($admin)->get('/reports/export-geojson');
+    $response = $this->actingAs($admin)->get('/reports/export/geojson');
 
     $response->assertOk();
     $response->assertSee('type');

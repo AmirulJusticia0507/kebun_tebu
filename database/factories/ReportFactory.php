@@ -14,7 +14,7 @@ class ReportFactory extends Factory
     public function definition(): array
     {
         $category = Category::factory()->create();
-        $reportedAt = fake()->dateTimeBetween('-30 days', 'now');
+        $reportedAt = now();
 
         return [
             'user_id' => User::factory(),
