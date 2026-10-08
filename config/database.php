@@ -19,6 +19,7 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'prefer',
+            'neon_endpoint_id' => env('NEON_ENDPOINT_ID'),
             'options' => [
                 PDO::ATTR_EMULATE_PREPARES => true,
             ],
