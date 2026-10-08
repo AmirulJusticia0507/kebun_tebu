@@ -50,7 +50,7 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        if ($category->reports()->count() > 0) {
+        if ($category->reports()->withTrashed()->exists()) {
             return back()->with('error', 'Kategori tidak dapat dihapus karena masih memiliki laporan.');
         }
 
