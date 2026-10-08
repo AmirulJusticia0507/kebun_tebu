@@ -9,10 +9,10 @@ Dasar audit: kode, route, konfigurasi, build produksi, dan test yang tersedia di
 |---|---|---|
 | Phase 2: Frontend Vue/Inertia | Selesai | Halaman autentikasi, dashboard, peta, daftar/form/detail laporan, dan halaman admin tersedia. Build produksi berhasil. |
 | Phase 3: Core Controllers | Selesai | Controller auth, dashboard, map, report, status, notification, dan admin tersedia; validasi, otorisasi, sync idempotent, serta perlindungan lifecycle data sudah ditutup. |
-| Phase 4: QA Test Plan | Belum selesai | Baru ada satu file test awal; test runner belum dapat berjalan dan beberapa test tidak sesuai implementasi. |
+| Phase 4: QA Test Plan | Selesai | Bootstrap Pest, factory, serta test auth, authorization, validasi, sync offline, scheduler, dan E2E offline-first (106 tests); Pint, PHPStan, dan CI lulus. |
 | Phase 4b: PWA Offline-First | Implementasi selesai, menunggu QA perangkat | Form, IndexedDB (termasuk foto), retry saat online, idempotency, cache form, manifest, dan service worker sudah tersambung. |
 | Phase 5: Notifications | Implementasi selesai, menunggu konfigurasi/QA | Database notification, WhatsApp, Web Push, SLA/digest, queue retry, dan notification center sudah tersedia. |
-| Phase 6: Security, Observability & Launch Prep | Sebagian besar | Hardening akses/upload/header, request tracing, dependency audit, queue monitoring, dan runbook deployment tersedia; CI dan QA launch masih menunggu. |
+| Phase 6: Security, Observability & Launch Prep | Selesai (menunggu aksi pra-launch) | Hardening akses/upload/header, request tracing, dependency audit, health/error monitoring dengan alert multi-kanal, sinkronisasi role↔Spatie, CI, dan runbook deployment tersedia; migration rehearsal, security review, load test, dan UAT lapangan tinggal dijalankan. |
 
 ## Detail per fase
 
@@ -55,37 +55,28 @@ Sudah tersedia:
 
 Validasi lanjutan dilakukan pada Phase 4 melalui feature tests.
 
-### [ ] Phase 4 — QA Test Plan Implementation
+### [x] Phase 4 — QA Test Plan Implementation
 
-Yang sudah ada:
+Sudah tersedia:
 
-- Dependency Pest dan plugin Laravel sudah tercantum di `composer.json`.
-- `tests/Feature/ReportTest.php` berisi draft skenario auth, laporan, export, GPS, offline, dan SLA.
+- Bootstrap Pest: `phpunit.xml`, `tests/Pest.php`, `TestCase.php`, dan `CreatesApplication.php` dengan SQLite in-memory; helper role `makeAdmin()`/`makeFieldOfficer()`.
+- Factory `UserFactory`, `CategoryFactory`, `BlockFactory`, dan `ReportFactory`.
+- Test auth: login, logout, throttling, register, reset password (termasuk migration `password_reset_tokens`), dan larangan eskalasi role.
+- Test authorization per role untuk dashboard, report, status, export, dan CRUD admin.
+- Test validasi laporan, upload foto, SLA deadline, filter, CSV/GeoJSON, serta proteksi formula injection pada export.
+- Test sync offline: duplikasi `client_uuid`, payload parsial, kegagalan batch, retry, dan isolasi sesi antar pengguna.
+- Test scheduled commands serta pembuatan notifikasi (SLA warning, daily digest, auto-close).
+- Test E2E offline-first (HTTP-level): login → buat laporan → offline → kembali online → sync → tampil di peta dengan filter.
+- CI GitHub Actions dua job: backend (composer install, composer audit, Pint, PHPStan larastan level 5, Pest) dan frontend (npm ci, ESLint, Prettier check, build PWA).
 
-Masalah saat audit:
+Hasil:
 
-- `php artisan test` gagal karena `phpunit.xml.dist` tidak tersedia.
-- Bootstrap Pest (`tests/Pest.php`) dan `TestCase.php` tidak tersedia.
-- Factory yang dipanggil oleh test tidak tersedia di `database/factories`.
-- Test tidak mengimpor model `User`, `Category`, dan `Report`.
-- Test membuat laporan melalui `/reports/create`, padahal route penyimpanan adalah `POST /reports`.
-- Test export memakai URL yang tidak sesuai route aktual.
-- Ekspektasi status validasi `318` tidak benar untuk Laravel.
-- Test filter mengirim filter sebagai argumen terpisah ke `get()`, bukan query string.
-- Test offline dan SLA saat ini hanya menguji array/waktu lokal, bukan perilaku aplikasi.
+- `php artisan test`: 106 tests lulus (383 assertions).
+- `vendor/bin/pint --test`, `vendor/bin/phpstan analyse` (level 5), ESLint, Prettier, dan `npm run build`: lulus.
 
-TODO:
+Catatan lanjutan:
 
-- [ ] Tambahkan konfigurasi dan bootstrap Pest yang valid.
-- [ ] Tambahkan factory minimal untuk User, Category, Block, dan Report.
-- [ ] Perbaiki test yang ada hingga seluruhnya benar-benar berjalan.
-- [ ] Test auth: login, logout, throttling, register, reset password, dan larangan eskalasi role.
-- [ ] Test authorization per role untuk dashboard, report, status, export, dan CRUD admin.
-- [ ] Test validasi laporan, upload foto, SLA deadline, filter, CSV, dan GeoJSON.
-- [ ] Test sync offline termasuk duplikasi, payload parsial, kegagalan batch, dan retry.
-- [ ] Test scheduled commands dan pembuatan/pengiriman notifikasi.
-- [ ] Tambahkan E2E mobile untuk login → buat laporan → offline → kembali online → sync → tampil di peta.
-- [ ] Jalankan Pint/PHPStan/test/build di CI.
+- [ ] Pengujian browser/perangkat nyata untuk alur kritis dan mode offline PWA.
 
 ### [x] Phase 4b — PWA Offline-First (menunggu QA perangkat)
 
@@ -149,6 +140,11 @@ Yang sudah ada:
 - Dependency production bebas advisory pada audit terakhir.
 - Queue monitoring, failed-job pruning, dan activity-log cleanup terjadwal.
 - Runbook deploy, backup/restore, rollback, smoke check, dan incident response tersedia.
+- `monitor:health` memeriksa database, storage, disk, heartbeat scheduler, failed jobs, dan backlog queue; `monitor:errors` memindai log ERROR/CRITICAL dengan threshold dan cooldown.
+- Endpoint `GET /healthz` (publik, 200/503) dan `GET /dashboard/health` (detail, khusus admin) untuk monitoring eksternal.
+- Alert monitoring dikirim bersamaan ke notification center, email, Web Push, dan webhook generik `MONITORING_WEBHOOK_URL` (queue dengan retry).
+- Kolom `users.role` dicerminkan ke Spatie roles pada save/assign; command `roles:sync` mendeteksi dan memperbaiki drift.
+- CI GitHub Actions: `composer install`, `composer audit`, Pint, PHPStan (larastan), Pest, ESLint, Prettier, dan build produksi PWA.
 
 TODO keamanan prioritas tinggi:
 
@@ -159,20 +155,20 @@ TODO keamanan prioritas tinggi:
 - [x] Harden upload dengan validasi, image re-encode, nama acak, dan EXIF stripping.
 - [x] Hapus pengecualian CSRF dan cookie placeholder.
 - [x] Tambahkan security headers serta panduan HTTPS/cookie/secrets production.
-- [ ] Pertimbangkan malware scan jika profil risiko deployment membutuhkannya.
-- [ ] Konsistensikan seluruh penggunaan kolom `role` dengan Spatie roles dalam refactor terpisah.
+- [x] Pertimbangkan malware scan jika profil risiko deployment membutuhkannya (keputusan dan pemicu aktivasi terdokumentasi di DEPLOYMENT.md).
+- [x] Konsistensikan seluruh penggunaan kolom `role` dengan Spatie roles dalam refactor terpisah (hook model, override `assignRole`/`syncRoles`, dan `roles:sync`).
 
 TODO observability dan launch:
 
 - [x] Tambahkan request/user correlation ID pada logging dan response.
-- [ ] Tambahkan exception/error monitoring dan alerting.
+- [x] Tambahkan exception/error monitoring dan alerting (`monitor:errors` + alert multi-kanal).
 - [x] Tambahkan queue monitoring serta pruning failed jobs/audit log.
-- [ ] Tambahkan monitoring eksternal untuk scheduler, storage, database, disk, dan error alerting.
-- [ ] Buat CI untuk install, lint/static analysis, test, dan build.
+- [x] Tambahkan monitoring eksternal untuk scheduler, storage, database, disk, dan error alerting (`/healthz`, `monitor:health`, heartbeat scheduler).
+- [x] Buat CI untuk install, lint/static analysis, test, dan build.
 - [x] Dokumentasikan konfigurasi production, queue worker, scheduler, storage, dan backup.
 - [x] Tambahkan runbook deploy, rollback, restore backup, incident response, dan smoke test.
-- [ ] Lakukan migration rehearsal dan uji restore backup sebelum launch.
-- [ ] Jalankan security review, load test, dan UAT lapangan pada perangkat target.
+- [ ] Lakukan migration rehearsal dan uji restore backup sebelum launch (checklist langkah demi langkah tersedia di DEPLOYMENT.md).
+- [ ] Jalankan security review, load test, dan UAT lapangan pada perangkat target (checklist tersedia di DEPLOYMENT.md).
 
 ## Urutan pengerjaan yang direkomendasikan
 
@@ -185,6 +181,9 @@ TODO observability dan launch:
 ## Hasil verifikasi audit
 
 - `php artisan route:list`: berhasil, 50 route terdaftar.
-- `npm run build`: berhasil; 863 module ditransformasi dan aset PWA dihasilkan.
-- `php artisan test`: gagal sebelum test berjalan karena `phpunit.xml.dist` tidak ditemukan.
+- `npm run build`: berhasil; manifest dan service worker PWA dihasilkan.
+- `php artisan test`: lulus — 106 tests, 383 assertions (SQLite in-memory).
+- `vendor/bin/pint --test` dan `vendor/bin/phpstan analyse` (level 5): lulus tanpa error.
+- ESLint dan Prettier check: lulus.
+- CI GitHub Actions (`.github/workflows/ci.yml`) menjalankan audit, lint, static analysis, test, dan build pada dua job backend/frontend.
 
