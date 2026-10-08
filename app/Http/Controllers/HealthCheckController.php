@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\HealthMonitor;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class HealthCheckController extends Controller
 {
@@ -13,7 +14,13 @@ class HealthCheckController extends Controller
      */
     public function status(HealthMonitor $monitor): JsonResponse
     {
-        $healthy = $monitor->healthy();
+        $checks = $monitor->checks();
+        $failed = array_values(array_filter($checks, fn (array $check) => $check['status'] === 'fail'));
+        $healthy = $failed === [];
+
+        if (! $healthy) {
+            Log::warning('Public health check failed.', ['checks' => $failed]);
+        }
 
         return response()->json([
             'status' => $healthy ? 'ok' : 'error',
