@@ -22,6 +22,8 @@ class ReportStatusController extends Controller
             'admin_note' => 'nullable|string|max:1000',
         ]);
 
+        $statusChanged = $report->status !== $validated['status'];
+
         $data = [
             'status'     => $validated['status'],
             'admin_note' => $validated['admin_note'] ?? $report->admin_note,
@@ -30,9 +32,15 @@ class ReportStatusController extends Controller
 
         if ($validated['status'] === 'CLOSED' && !$report->isClosed()) {
             $data['resolved_at'] = now();
+        } elseif ($validated['status'] !== 'CLOSED') {
+            $data['resolved_at'] = null;
         }
 
         $report->update($data);
+
+        if (! $statusChanged) {
+            return back()->with('success', 'Catatan laporan berhasil diperbarui.');
+        }
 
         Notification::create([
             'type' => 'report.status_changed',
