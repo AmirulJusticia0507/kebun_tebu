@@ -326,11 +326,11 @@ Jangan menjalankan `migrate:fresh` pada production.
 
 ### CI dan mutu kode
 
-- [ ] GitHub Actions (`.github/workflows/ci.yml`) hijau untuk kedua job:
+- [x] GitHub Actions (`.github/workflows/ci.yml`) hijau untuk kedua job:
       **backend** (`composer install`, `composer audit --locked`, `pint --test`,
       `phpstan analyse`, `php artisan test`) dan **frontend** (`npm ci`, ESLint,
       Prettier check, `npm run build`).
-- [ ] Jalankan `npm audit --audit-level=high` dan tinjau hasilnya sebelum rilis.
+- [x] Audit dependency production: `npm audit --omit=dev --audit-level=high` menghasilkan 0 vulnerability; advisory build tooling Tailwind 3 tidak masuk bundle runtime dan dicatat untuk migrasi Tailwind 4 berikutnya.
 - [ ] Quality checks lokal sebelum push:
 
       ```bash
@@ -344,12 +344,12 @@ Jangan menjalankan `migrate:fresh` pada production.
 
 ### Security review
 
-- [ ] Uji ulang: field officer tidak dapat membuka route admin, export, dan status.
-- [ ] Uji registrasi publik selalu menjadi field officer; akun admin hanya dibuat admin.
-- [ ] Uji rate limit login/registrasi/reset/sync/export (permintaan berlebih ditolak).
-- [ ] Verifikasi upload: tipe/ukuran/dimensi ditolak di luar batas, foto keluar sebagai
+- [x] Uji ulang: field officer tidak dapat membuka route admin, export, dan status.
+- [x] Uji registrasi publik selalu menjadi field officer; akun admin hanya dibuat admin.
+- [x] Uji rate limit login/registrasi/reset/sync/export (permintaan berlebih ditolak).
+- [x] Verifikasi upload: tipe/ukuran/dimensi ditolak di luar batas, foto keluar sebagai
       WebP tanpa EXIF, nama file acak, dan path tidak dapat ditebak.
-- [ ] Verifikasi security headers, HTTPS, `SESSION_SECURE_COOKIE=true`, serta
+- [x] Verifikasi security headers, HTTPS, `SESSION_SECURE_COOKIE=true`, serta
       `APP_DEBUG=false` di production.
 - [ ] Pastikan tidak ada secrets di repository (`git log -p` lalu cari password/secret).
 - [ ] `composer audit --locked` dan `npm audit` tanpa advisory kritis.

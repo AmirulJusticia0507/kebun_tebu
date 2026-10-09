@@ -204,6 +204,7 @@ TODO observability dan launch:
 - Production Vercel: halaman utama dan `/healthz` terverifikasi HTTP 200 pada 9 Oktober 2026.
 - Perubahan terbaru: mobile hamburger navigation (`d1948c9`) dan editor/layer batas blok (`6d1ee13`) sudah ter-deploy.
 - Vercel Cron harian dan queue sync production dikonfigurasi (`2bd54b1`); uptime check GitHub Actions berjalan setiap 15 menit (`379412f`).
-- Quality gate 9 Oktober 2026: 108 tests/389 assertions lulus, PHPStan/Pint/ESLint/Prettier/build lulus, Composer audit bersih, dan audit dependency production npm menemukan 0 vulnerability.
+- Quality gate GitHub Actions 9 Oktober 2026 hijau: 109 tests/399 assertions lulus, PHPStan/Pint/ESLint/Prettier/build lulus, Composer audit bersih, dan audit dependency production npm menemukan 0 vulnerability.
+- Runtime PHP production tidak lagi mengekspos header versi; HTTPS, HSTS, dan security headers terverifikasi langsung setelah deploy.
 - Rehearsal PostgreSQL lokal lulus; 200 request dengan concurrency 100 ke `/` dan `/login` masing-masing menghasilkan 0 kegagalan (p95 2.853 ms dan 623 ms).
 
