@@ -1,7 +1,8 @@
 <script setup>
-import { ref } from "vue";
+import { nextTick, onBeforeUnmount, ref } from "vue";
 import { useForm, Head, router } from "@inertiajs/vue3";
 import AppLayout from "@/Layouts/AppLayout.vue";
+import L from "leaflet";
 
 defineProps({
   user: Object,
@@ -10,6 +11,10 @@ defineProps({
 
 const showModal = ref(false);
 const editingBlock = ref(null);
+const boundaryMapContainer = ref(null);
+const boundaryPoints = ref([]);
+let boundaryMap = null;
+let boundaryLayer = null;
 
 const form = useForm({
   code: "",
@@ -17,13 +22,89 @@ const form = useForm({
   hectare: "",
   pic_user_id: "",
   is_active: true,
+  polygon: null,
 });
+
+const syncPolygon = () => {
+  if (boundaryLayer && boundaryMap) boundaryMap.removeLayer(boundaryLayer);
+  boundaryLayer = null;
+
+  if (boundaryPoints.value.length >= 3) {
+    boundaryLayer = L.polygon(boundaryPoints.value, {
+      color: "#10b981",
+      weight: 3,
+      fillColor: "#10b981",
+      fillOpacity: 0.25,
+    }).addTo(boundaryMap);
+
+    const coordinates = boundaryPoints.value.map(({ lat, lng }) => [lng, lat]);
+    coordinates.push([...coordinates[0]]);
+    form.polygon = { type: "Polygon", coordinates: [coordinates] };
+  } else {
+    if (boundaryPoints.value.length) {
+      boundaryLayer = L.polyline(boundaryPoints.value, {
+        color: "#10b981",
+        weight: 3,
+        dashArray: "6 6",
+      }).addTo(boundaryMap);
+    }
+    form.polygon = null;
+  }
+};
+
+const initBoundaryMap = async () => {
+  await nextTick();
+  if (!boundaryMapContainer.value) return;
+
+  boundaryMap?.remove();
+  boundaryMap = L.map(boundaryMapContainer.value, {
+    center: [-7.7956, 110.3695],
+    zoom: 15,
+  });
+
+  L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    { attribution: "Tiles &copy; Esri", maxZoom: 19 },
+  ).addTo(boundaryMap);
+
+  boundaryMap.on("click", ({ latlng }) => {
+    boundaryPoints.value.push(latlng);
+    syncPolygon();
+  });
+
+  syncPolygon();
+  if (boundaryPoints.value.length >= 3) {
+    boundaryMap.fitBounds(L.latLngBounds(boundaryPoints.value), {
+      padding: [24, 24],
+    });
+  }
+};
+
+const resetBoundary = () => {
+  boundaryPoints.value = [];
+  syncPolygon();
+};
+
+const undoBoundaryPoint = () => {
+  boundaryPoints.value.pop();
+  boundaryPoints.value = [...boundaryPoints.value];
+  syncPolygon();
+};
+
+const closeModal = () => {
+  showModal.value = false;
+  boundaryMap?.remove();
+  boundaryMap = null;
+  boundaryLayer = null;
+};
 
 const openCreate = () => {
   editingBlock.value = null;
   form.reset();
   form.is_active = true;
+  boundaryPoints.value = [];
   showModal.value = true;
+  initBoundaryMap();
 };
 
 const openEdit = (block) => {
@@ -33,20 +114,25 @@ const openEdit = (block) => {
   form.hectare = block.hectare || "";
   form.pic_user_id = block.pic_user_id || "";
   form.is_active = block.is_active;
+  form.polygon = block.polygon || null;
+  boundaryPoints.value = (block.polygon?.coordinates?.[0] || [])
+    .slice(0, -1)
+    .map(([lng, lat]) => L.latLng(lat, lng));
   showModal.value = true;
+  initBoundaryMap();
 };
 
 const submit = () => {
   if (editingBlock.value) {
     form.put(route("admin.blocks.update", editingBlock.value.id), {
       onSuccess: () => {
-        showModal.value = false;
+        closeModal();
       },
     });
   } else {
     form.post(route("admin.blocks.store"), {
       onSuccess: () => {
-        showModal.value = false;
+        closeModal();
         form.reset();
       },
     });
@@ -56,6 +142,8 @@ const submit = () => {
 const toggleActive = (block) => {
   router.delete(route("admin.blocks.destroy", block.id));
 };
+
+onBeforeUnmount(() => boundaryMap?.remove());
 </script>
 
 <template>
@@ -173,15 +261,12 @@ const toggleActive = (block) => {
       v-if="showModal"
       class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
     >
-      <div class="card w-full max-w-md p-6">
+      <div class="card max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold">
             {{ editingBlock ? "Edit Blok" : "Tambah Blok Baru" }}
           </h2>
-          <button
-            @click="showModal = false"
-            class="text-gray-400 hover:text-gray-600"
-          >
+          <button @click="closeModal" class="text-gray-400 hover:text-gray-600">
             ✕
           </button>
         </div>
@@ -209,6 +294,51 @@ const toggleActive = (block) => {
               class="input"
             />
           </div>
+          <div>
+            <div class="mb-2 flex items-center justify-between gap-3">
+              <div>
+                <label class="label">Batas Area Kebun</label>
+                <p class="text-xs text-gray-500">
+                  Klik minimal 3 titik sudut pada peta untuk membentuk area.
+                </p>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  class="text-xs font-semibold text-amber-600 hover:underline disabled:opacity-40"
+                  :disabled="!boundaryPoints.length"
+                  @click="undoBoundaryPoint"
+                >
+                  Urungkan
+                </button>
+                <button
+                  type="button"
+                  class="text-xs font-semibold text-rose-600 hover:underline disabled:opacity-40"
+                  :disabled="!boundaryPoints.length"
+                  @click="resetBoundary"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+            <div
+              ref="boundaryMapContainer"
+              class="h-64 w-full overflow-hidden rounded-xl border border-gray-300"
+            ></div>
+            <p
+              class="mt-2 text-xs"
+              :class="
+                boundaryPoints.length >= 3
+                  ? 'text-emerald-600'
+                  : 'text-gray-500'
+              "
+            >
+              {{ boundaryPoints.length }} titik dipilih
+              <span v-if="boundaryPoints.length >= 3"
+                >— area siap disimpan</span
+              >
+            </p>
+          </div>
           <div class="flex gap-2 pt-2">
             <button
               type="submit"
@@ -219,7 +349,7 @@ const toggleActive = (block) => {
             </button>
             <button
               type="button"
-              @click="showModal = false"
+              @click="closeModal"
               class="btn-secondary flex-1"
             >
               Batal

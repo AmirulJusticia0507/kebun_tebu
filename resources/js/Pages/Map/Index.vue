@@ -19,6 +19,7 @@ const markers = ref(null);
 const selectedReport = ref(null);
 const isFilterSidebarOpen = ref(true);
 const isDetailSidebarOpen = ref(false);
+let hasFittedBlockBounds = false;
 
 const filterForm = useForm(
   {
@@ -204,14 +205,23 @@ const loadBlockLayers = () => {
   if (geojson.features.length === 0) return;
 
   const blockLayer = L.geoJSON(geojson, {
-    style: () => ({
-      color: "#10b981",
-      weight: 2,
-      opacity: 0.8,
-      fillColor: "#10b981",
-      fillOpacity: 0.15,
-    }),
+    style: (feature) => {
+      const palette = ["#10b981", "#22c55e", "#14b8a6", "#84cc16", "#06b6d4"];
+      const color = palette[feature.properties.id % palette.length];
+
+      return {
+        color,
+        weight: 3,
+        opacity: 1,
+        fillColor: color,
+        fillOpacity: 0.28,
+      };
+    },
     onEachFeature: (feature, layer) => {
+      layer.bindTooltip(
+        `Blok ${feature.properties.code} · ${feature.properties.name}`,
+        { sticky: true, direction: "top", className: "block-map-label" },
+      );
       layer.bindPopup(`
                 <div class="p-2">
                     <strong class="text-emerald-400">Blok ${feature.properties.code}</strong><br>
@@ -225,6 +235,14 @@ const loadBlockLayers = () => {
 
   blockLayer.addTo(map.value);
   map.value._blockLayer = blockLayer;
+
+  if (!hasFittedBlockBounds && blockLayer.getBounds().isValid()) {
+    map.value.fitBounds(blockLayer.getBounds(), {
+      padding: [40, 40],
+      maxZoom: 17,
+    });
+    hasFittedBlockBounds = true;
+  }
 };
 
 const applyFilters = () => {

@@ -227,7 +227,10 @@ const confirmLogout = () => {
         <div class="flex items-center justify-between h-16">
           <!-- Brand & Links -->
           <div class="flex min-w-0 items-center gap-3 md:gap-8">
-            <Link href="/map" class="flex shrink-0 items-center gap-2 sm:gap-3 group">
+            <Link
+              href="/map"
+              class="flex shrink-0 items-center gap-2 sm:gap-3 group"
+            >
               <div
                 class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-lg shadow-emerald-950/40 group-hover:scale-105 transition-transform duration-200"
               >
@@ -253,7 +256,7 @@ const confirmLogout = () => {
               </div>
             </Link>
 
-            <nav class="hidden md:flex items-center gap-1">
+            <nav class="hidden lg:flex items-center gap-1">
               <Link
                 href="/map"
                 class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
@@ -294,8 +297,7 @@ const confirmLogout = () => {
                 href="/dashboard"
                 class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
                 :class="
-                  $page.url.startsWith('/dashboard') &&
-                  !$page.url.startsWith('/dashboard/users')
+                  $page.url === '/dashboard'
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                 "
@@ -314,6 +316,18 @@ const confirmLogout = () => {
               >
                 👥 Kelola Pengguna
               </Link>
+              <Link
+                v-if="user.role === 'admin'"
+                href="/dashboard/blocks"
+                class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
+                :class="
+                  $page.url.startsWith('/dashboard/blocks')
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                "
+              >
+                Blok Kebun
+              </Link>
             </nav>
           </div>
 
@@ -322,7 +336,7 @@ const confirmLogout = () => {
             <!-- Adaptive Dark / Light Mode Toggle Button -->
             <button
               @click="toggleTheme"
-              class="hidden md:flex p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all duration-200 items-center justify-center border border-slate-700/60 bg-slate-900/60 shadow-sm"
+              class="hidden lg:flex p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all duration-200 items-center justify-center border border-slate-700/60 bg-slate-900/60 shadow-sm"
               :title="
                 isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'
               "
@@ -434,7 +448,7 @@ const confirmLogout = () => {
             </div>
 
             <!-- User Profile Dropdown & SweetAlert Logout -->
-            <div class="relative hidden md:flex items-center gap-3">
+            <div class="relative hidden lg:flex items-center gap-3">
               <div class="hidden sm:flex flex-col items-end">
                 <span class="text-sm font-bold text-slate-200">{{
                   user.name
@@ -474,7 +488,7 @@ const confirmLogout = () => {
 
             <button
               type="button"
-              class="md:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/60 bg-slate-900/60 text-slate-200 transition hover:border-emerald-500/50 hover:text-emerald-400"
+              class="lg:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/60 bg-slate-900/60 text-slate-200 transition hover:border-emerald-500/50 hover:text-emerald-400"
               :aria-expanded="mobileMenuOpen"
               aria-controls="mobile-navigation"
               :aria-label="mobileMenuOpen ? 'Tutup menu' : 'Buka menu'"
@@ -516,85 +530,98 @@ const confirmLogout = () => {
       <div
         v-show="mobileMenuOpen"
         id="mobile-navigation"
-        class="md:hidden border-t border-slate-800 bg-slate-950/95 px-4 py-4 shadow-2xl backdrop-blur-xl"
+        class="lg:hidden border-t border-slate-800 bg-slate-950/95 px-4 py-4 shadow-2xl backdrop-blur-xl"
       >
         <nav class="mx-auto grid max-w-7xl gap-1" aria-label="Navigasi mobile">
-        <Link
-          href="/map"
-          class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
-          :class="
-            $page.url.startsWith('/map')
-              ? 'bg-emerald-500/10 text-emerald-400'
-              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-          "
-        >
-          Peta Monitoring
-        </Link>
-        <Link
-          href="/reports/create"
-          class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
-          :class="
-            $page.url.startsWith('/reports/create')
-              ? 'bg-emerald-500/10 text-emerald-400'
-              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-          "
-        >
-          Buat Laporan
-        </Link>
-        <Link
-          href="/reports"
-          class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
-          :class="
-            $page.url === '/reports' ||
-            ($page.url.startsWith('/reports/') &&
-              !$page.url.startsWith('/reports/create'))
-              ? 'bg-emerald-500/10 text-emerald-400'
-              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-          "
-        >
-          Riwayat Laporan
-        </Link>
-        <Link
-          v-if="user.role === 'admin'"
-          href="/dashboard"
-          class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
-          :class="
-            $page.url.startsWith('/dashboard') &&
-            !$page.url.startsWith('/dashboard/users')
-              ? 'bg-emerald-500/10 text-emerald-400'
-              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-          "
-        >
-          Dashboard
-        </Link>
-        <Link
-          v-if="user.role === 'admin'"
-          href="/dashboard/users"
-          class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
-          :class="
-            $page.url.startsWith('/dashboard/users')
-              ? 'bg-emerald-500/10 text-emerald-400'
-              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-          "
-        >
-          Kelola Pengguna
-        </Link>
-        <div class="mt-3 grid grid-cols-2 gap-2 border-t border-slate-800 pt-3">
-          <button
-            type="button"
-            class="rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-slate-300 hover:border-emerald-500/50 hover:text-white"
-            @click="toggleTheme"
+          <Link
+            href="/map"
+            class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
+            :class="
+              $page.url.startsWith('/map')
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            "
           >
-            {{ isDark ? "Mode Terang" : "Mode Gelap" }}
-          </button>
-          <button
-            type="button"
-            class="rounded-xl border border-rose-900/70 px-4 py-3 text-sm font-semibold text-rose-400 hover:bg-rose-950/50"
-            @click="confirmLogout"
+            Peta Monitoring
+          </Link>
+          <Link
+            href="/reports/create"
+            class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
+            :class="
+              $page.url.startsWith('/reports/create')
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            "
           >
-            Keluar
-          </button>
-        </div>
+            Buat Laporan
+          </Link>
+          <Link
+            href="/reports"
+            class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
+            :class="
+              $page.url === '/reports' ||
+              ($page.url.startsWith('/reports/') &&
+                !$page.url.startsWith('/reports/create'))
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            "
+          >
+            Riwayat Laporan
+          </Link>
+          <Link
+            v-if="user.role === 'admin'"
+            href="/dashboard"
+            class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
+            :class="
+              $page.url === '/dashboard'
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            "
+          >
+            Dashboard
+          </Link>
+          <Link
+            v-if="user.role === 'admin'"
+            href="/dashboard/users"
+            class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
+            :class="
+              $page.url.startsWith('/dashboard/users')
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            "
+          >
+            Kelola Pengguna
+          </Link>
+          <Link
+            v-if="user.role === 'admin'"
+            href="/dashboard/blocks"
+            class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
+            :class="
+              $page.url.startsWith('/dashboard/blocks')
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            "
+          >
+            Blok Kebun
+          </Link>
+          <div
+            class="mt-3 grid grid-cols-2 gap-2 border-t border-slate-800 pt-3"
+          >
+            <button
+              type="button"
+              class="rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-slate-300 hover:border-emerald-500/50 hover:text-white"
+              @click="toggleTheme"
+            >
+              {{ isDark ? "Mode Terang" : "Mode Gelap" }}
+            </button>
+            <button
+              type="button"
+              class="rounded-xl border border-rose-900/70 px-4 py-3 text-sm font-semibold text-rose-400 hover:bg-rose-950/50"
+              @click="confirmLogout"
+            >
+              Keluar
+            </button>
+          </div>
         </nav>
       </div>
     </header>
