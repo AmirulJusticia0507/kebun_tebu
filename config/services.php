@@ -11,4 +11,8 @@ return [
         'public_key' => env('VAPID_PUBLIC_KEY'),
         'private_key' => env('VAPID_PRIVATE_KEY'),
     ],
+
+    'vercel' => [
+        'cron_secret' => env('CRON_SECRET'),
+    ],
 ];

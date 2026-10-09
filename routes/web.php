@@ -10,6 +10,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportStatusController;
+use App\Http\Controllers\VercelCronController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -35,6 +36,10 @@ Route::get('/privacy-policy', function () {
 Route::get('/healthz', [HealthCheckController::class, 'status'])
     ->middleware('throttle:60,1')
     ->name('health.status');
+
+Route::get('/internal/cron/daily', VercelCronController::class)
+    ->middleware('throttle:5,1')
+    ->name('cron.daily');
 
 // ─── Authenticated routes ─────────────────────────────────────────────────────
 Route::middleware(['auth'])->group(function () {
