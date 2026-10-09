@@ -1,18 +1,18 @@
 # Audit Status dan TODO Kebun Tebu
 
-Tanggal audit: 8 Oktober 2026  
+Tanggal audit: 9 Oktober 2026
 Dasar audit: kode, route, konfigurasi, build produksi, dan test yang tersedia di repository.
 
 ## Ringkasan
 
 | Fase | Status audit | Ringkasan |
 |---|---|---|
-| Phase 2: Frontend Vue/Inertia | Selesai | Halaman autentikasi, dashboard, peta, daftar/form/detail laporan, dan halaman admin tersedia. Build produksi berhasil. |
+| Phase 2: Frontend Vue/Inertia | Selesai | Halaman autentikasi, dashboard, peta, laporan, dan admin tersedia; navbar responsif/hamburger serta editor batas blok sudah ditambahkan. Build produksi berhasil. |
 | Phase 3: Core Controllers | Selesai | Controller auth, dashboard, map, report, status, notification, dan admin tersedia; validasi, otorisasi, sync idempotent, serta perlindungan lifecycle data sudah ditutup. |
 | Phase 4: QA Test Plan | Selesai | Bootstrap Pest, factory, serta test auth, authorization, validasi, sync offline, scheduler, dan E2E offline-first (106 tests); Pint, PHPStan, dan CI lulus. |
 | Phase 4b: PWA Offline-First | Implementasi selesai, menunggu QA perangkat | Form, IndexedDB (termasuk foto), retry saat online, idempotency, cache form, manifest, dan service worker sudah tersambung. |
 | Phase 5: Notifications | Implementasi selesai, menunggu konfigurasi/QA | Database notification, WhatsApp, Web Push, SLA/digest, queue retry, dan notification center sudah tersedia. |
-| Phase 6: Security, Observability & Launch Prep | Selesai (menunggu aksi pra-launch) | Hardening akses/upload/header, request tracing, dependency audit, health/error monitoring dengan alert multi-kanal, sinkronisasi role↔Spatie, CI, dan runbook deployment tersedia; migration rehearsal, security review, load test, dan UAT lapangan tinggal dijalankan. |
+| Phase 6: Security, Observability & Launch Prep | Implementasi selesai, launch gate tersisa | Production sudah aktif di Vercel dan Neon dengan health check sehat. Migration rehearsal, backup restore, security review, load test, UAT, serta runtime scheduler/queue production masih perlu dituntaskan. |
 
 ## Detail per fase
 
@@ -25,12 +25,17 @@ Sudah tersedia:
 - Peta Leaflet dengan filter serta interaksi laporan.
 - Daftar, form pembuatan, dan detail laporan.
 - Pengelolaan user, kategori, dan blok untuk admin.
+- Editor batas blok berbasis peta satelit: admin dapat menggambar Polygon GeoJSON dengan klik titik, undo, reset, dan edit ulang.
+- Peta monitoring menampilkan batas kebun/sawah berwarna, tooltip nama blok, popup detail, dan otomatis fokus ke area blok.
+- Navbar mobile memakai hamburger; menu menutup dan halaman scroll ke atas setelah navigasi selesai.
+- Branding navbar responsif dan tidak pecah pada layar sempit.
 - Layout aplikasi, cookie consent, dan privacy policy.
 - Build produksi berhasil melalui `npm run build`.
 
 Catatan lanjutan:
 
 - [ ] Tambahkan pengujian browser untuk alur kritis dan tampilan mobile.
+- [ ] Tambahkan browser test untuk menggambar, mengedit, dan menampilkan polygon blok.
 - [ ] Verifikasi manual seluruh state kosong, error, loading, dan aksesibilitas dasar.
 
 ### [x] Phase 3 — Core Controllers
@@ -42,6 +47,7 @@ Sudah tersedia:
 - Map query dan filter.
 - CRUD laporan dasar, upload foto, status, CSV/GeoJSON export, dan endpoint offline sync.
 - CRUD admin untuk user, kategori, dan blok.
+- Penyimpanan batas blok dalam format GeoJSON Polygon/MultiPolygon serta endpoint GeoJSON untuk layer peta.
 - Notification center untuk membaca dan menandai notifikasi.
 - Seluruh route berhasil dimuat oleh `php artisan route:list`.
 - Detail laporan dibatasi untuk admin/pemilik; status dan export hanya untuk admin.
@@ -77,6 +83,7 @@ Hasil:
 Catatan lanjutan:
 
 - [ ] Pengujian browser/perangkat nyata untuk alur kritis dan mode offline PWA.
+- [ ] Tambahkan feature test validasi dan persistensi polygon blok dari editor peta.
 
 ### [x] Phase 4b — PWA Offline-First (menunggu QA perangkat)
 
@@ -145,6 +152,10 @@ Yang sudah ada:
 - Alert monitoring dikirim bersamaan ke notification center, email, Web Push, dan webhook generik `MONITORING_WEBHOOK_URL` (queue dengan retry).
 - Kolom `users.role` dicerminkan ke Spatie roles pada save/assign; command `roles:sync` mendeteksi dan memperbaiki drift.
 - CI GitHub Actions: `composer install`, `composer audit`, Pint, PHPStan (larastan), Pest, ESLint, Prettier, dan build produksi PWA.
+- Deployment production aktif di `https://kebuntebu.vercel.app` melalui integrasi GitHub → Vercel.
+- Runtime Laravel serverless memakai direktori writable `/tmp`, trusted proxy HTTPS, dan health threshold yang disesuaikan untuk filesystem ephemeral Vercel.
+- PostgreSQL Neon tersambung dari runtime PHP Vercel melalui endpoint option untuk kompatibilitas libpq/SNI.
+- Endpoint production `/`, `/login`, aset Vite, dan `/healthz` telah diverifikasi; health terakhir mengembalikan HTTP 200.
 
 TODO keamanan prioritas tinggi:
 
@@ -169,14 +180,16 @@ TODO observability dan launch:
 - [x] Tambahkan runbook deploy, rollback, restore backup, incident response, dan smoke test.
 - [ ] Lakukan migration rehearsal dan uji restore backup sebelum launch (checklist langkah demi langkah tersedia di DEPLOYMENT.md).
 - [ ] Jalankan security review, load test, dan UAT lapangan pada perangkat target (checklist tersedia di DEPLOYMENT.md).
+- [ ] Tentukan runner production untuk scheduler dan queue (server terpisah/cron eksternal atau adaptasi serverless); Vercel tidak menyediakan worker PHP persisten.
+- [ ] Konfigurasikan uptime monitor eksternal ke `/healthz` dan verifikasi kanal alert production.
 
-## Urutan pengerjaan yang direkomendasikan
+## Urutan pengerjaan berikutnya
 
-1. Perbaiki celah role admin dan authorization Phase 3/6.
-2. Hidupkan fondasi Pest lalu kunci perilaku yang sudah ada dengan feature tests.
-3. Selesaikan alur offline end-to-end dengan idempotent sync.
-4. Bangun notification pipeline database, lalu WhatsApp dan Web Push.
-5. Tambahkan CI, monitoring, backup/restore, UAT, dan checklist launch.
+1. Jalankan QA browser/perangkat nyata untuk navbar mobile, editor polygon, GPS, foto, dan alur offline/reconnect.
+2. Tambahkan automated test untuk persistensi/validasi polygon dan interaksi peta.
+3. Aktifkan VAPID Web Push dan kredensial WhatsApp, lalu uji delivery pada perangkat target.
+4. Sediakan scheduler dan queue runner production yang kompatibel dengan arsitektur serverless.
+5. Jalankan migration rehearsal, restore backup, security review, load test, dan UAT sebelum launch resmi.
 
 ## Hasil verifikasi audit
 
@@ -186,4 +199,6 @@ TODO observability dan launch:
 - `vendor/bin/pint --test` dan `vendor/bin/phpstan analyse` (level 5): lulus tanpa error.
 - ESLint dan Prettier check: lulus.
 - CI GitHub Actions (`.github/workflows/ci.yml`) menjalankan audit, lint, static analysis, test, dan build pada dua job backend/frontend.
+- Production Vercel: halaman utama dan `/healthz` terverifikasi HTTP 200 pada 9 Oktober 2026.
+- Perubahan terbaru: mobile hamburger navigation (`d1948c9`) dan editor/layer batas blok (`6d1ee13`) sudah ter-deploy.
 
