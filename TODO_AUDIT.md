@@ -178,18 +178,20 @@ TODO observability dan launch:
 - [x] Buat CI untuk install, lint/static analysis, test, dan build.
 - [x] Dokumentasikan konfigurasi production, queue worker, scheduler, storage, dan backup.
 - [x] Tambahkan runbook deploy, rollback, restore backup, incident response, dan smoke test.
-- [ ] Lakukan migration rehearsal dan uji restore backup sebelum launch (checklist langkah demi langkah tersedia di DEPLOYMENT.md).
-- [ ] Jalankan security review, load test, dan UAT lapangan pada perangkat target (checklist tersedia di DEPLOYMENT.md).
-- [ ] Tentukan runner production untuk scheduler dan queue (server terpisah/cron eksternal atau adaptasi serverless); Vercel tidak menyediakan worker PHP persisten.
-- [ ] Konfigurasikan uptime monitor eksternal ke `/healthz` dan verifikasi kanal alert production.
+- [x] Jalankan migration rehearsal dan uji restore backup lokal PostgreSQL: dump/restore, perbandingan row count, rollback, dan migrate ulang lulus pada 9 Oktober 2026.
+- [~] Security review dan load smoke publik sudah dijalankan; UAT lapangan serta load test alur terautentikasi/upload/offline masih menunggu perangkat/data uji.
+- [x] Runner serverless ditetapkan: `QUEUE_CONNECTION=sync` dan Vercel Cron harian terenkripsi untuk SLA, auto-close, digest, pruning, dan health alert (batas Hobby: sekali sehari).
+- [x] Uptime monitor eksternal GitHub Actions memeriksa `/healthz` dan halaman publik setiap 15 menit.
+- [ ] Aktifkan backup production otomatis dan lakukan restore dari backup Neon/object storage, bukan hanya database lokal.
+- [ ] Verifikasi kanal alert nyata setelah SMTP, webhook, WhatsApp, dan VAPID production diisi.
 
 ## Urutan pengerjaan berikutnya
 
 1. Jalankan QA browser/perangkat nyata untuk navbar mobile, editor polygon, GPS, foto, dan alur offline/reconnect.
 2. Tambahkan automated test untuk persistensi/validasi polygon dan interaksi peta.
 3. Aktifkan VAPID Web Push dan kredensial WhatsApp, lalu uji delivery pada perangkat target.
-4. Sediakan scheduler dan queue runner production yang kompatibel dengan arsitektur serverless.
-5. Jalankan migration rehearsal, restore backup, security review, load test, dan UAT sebelum launch resmi.
+4. Tingkatkan paket/runner bila SLA harus diperiksa lebih sering daripada batas cron harian Vercel Hobby.
+5. Aktifkan backup production, uji restore Neon/object storage, lanjutkan authenticated load test, dan selesaikan UAT sebelum launch resmi.
 
 ## Hasil verifikasi audit
 
@@ -201,4 +203,7 @@ TODO observability dan launch:
 - CI GitHub Actions (`.github/workflows/ci.yml`) menjalankan audit, lint, static analysis, test, dan build pada dua job backend/frontend.
 - Production Vercel: halaman utama dan `/healthz` terverifikasi HTTP 200 pada 9 Oktober 2026.
 - Perubahan terbaru: mobile hamburger navigation (`d1948c9`) dan editor/layer batas blok (`6d1ee13`) sudah ter-deploy.
+- Vercel Cron harian dan queue sync production dikonfigurasi (`2bd54b1`); uptime check GitHub Actions berjalan setiap 15 menit (`379412f`).
+- Quality gate 9 Oktober 2026: 108 tests/389 assertions lulus, PHPStan/Pint/ESLint/Prettier/build lulus, Composer audit bersih, dan audit dependency production npm menemukan 0 vulnerability.
+- Rehearsal PostgreSQL lokal lulus; 200 request dengan concurrency 100 ke `/` dan `/login` masing-masing menghasilkan 0 kegagalan (p95 2.853 ms dan 623 ms).
 

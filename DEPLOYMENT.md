@@ -375,18 +375,24 @@ sebelum deploy (`clamscan -r --infected`), dan/atau pasang on-access scanning di
 
 ### Load test dan UAT
 
+Hasil smoke load 9 Oktober 2026 (script `scripts/load-smoke.mjs`, production):
+
+- `/`: 200 request, concurrency 100, 0 error, p95 2.853 ms.
+- `/login`: 200 request, concurrency 100, 0 error, p95 623 ms.
+- Ini memvalidasi endpoint publik; alur terautentikasi, upload, export, dan sync offline tetap perlu diuji dengan data khusus non-production.
+
 - [ ] Load test skenario kritis (login, buat laporan + upload foto, peta, export CSV)
       dengan target minimal 100 pengguna bersamaan; catat p95 latency dan error rate.
 - [ ] Uji beban sync offline batch (50 draft per perangkat) secara bersamaan.
 - [ ] UAT lapangan pada perangkat Android target: instalasi PWA, mode offline
       (reload, form, GPS, foto), reconnect/sync, notifikasi, dan tampilan peta.
 - [ ] Uji dengan sinyal lemah/terputus (airplane mode) dan setelah kembali online.
-- [ ] Rehearsal migration dan restore backup sesuai bagian sebelumnya sudah dicatat.
+- [x] Rehearsal migration dan restore backup lokal PostgreSQL sudah dicatat (9 Oktober 2026): seluruh row count cocok, rollback satu langkah dan migrate ulang berhasil.
+- [ ] Ulangi restore rehearsal memakai backup production Neon dan object storage sebelum launch resmi.
 
 ### Konfigurasi production yang diverifikasi
 
-- [ ] Queue worker persisten (process manager) dan cron `schedule:run` aktif;
-      heartbeat `storage/framework/schedule-heartbeat.json` selalu baru.
-- [ ] `GET /healthz` dipantau uptime monitor eksternal.
+- [x] Production Vercel memakai `QUEUE_CONNECTION=sync` dan Vercel Cron harian yang dilindungi `CRON_SECRET` (batas paket Hobby: sekali per hari).
+- [x] `GET /healthz` dan halaman publik dipantau GitHub Actions setiap 15 menit.
 - [ ] `MONITORING_WEBHOOK_URL`/email teruji mengirim alert nyata.
 - [ ] Backup otomatis database dan `storage/app/public` aktif serta pernah di-restore.
