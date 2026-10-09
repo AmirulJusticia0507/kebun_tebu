@@ -48,7 +48,7 @@ jobs:
       - name: Prepare environment
         run: |
           cp .env.example .env
-          mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs
+          mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs tests/Unit
           php artisan key:generate --force
           php artisan storage:link
 
